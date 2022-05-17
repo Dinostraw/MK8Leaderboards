@@ -1,0 +1,12 @@
+.idea/
+__pycache__/
+Samples/Output/
+Resources/
+Will's Files/
+Samples/dominance.py
+Samples/mii.py
+Samples/mk.txt
+*.env
+*.csv
+*.xlsx
+*.bin

@@ -1,0 +1,249 @@
+{
+  "MARIO_KART_STADIUM": [
+    "MKS",
+    "マリカス"
+  ],
+  "WATER_PARK": [
+    "WP",
+    "ウォタパ"
+  ],
+  "SWEET_SWEET_CANYON": [
+    "SSC",
+    "スイキャニ"
+  ],
+  "THWOMP_RUINS": [
+    "TR",
+    "ドッスン"
+  ],
+  "MARIO_CIRCUIT": [
+    "MC",
+    "新マリサ",
+    "しんマリサ"
+  ],
+  "TOAD_HARBOR": [
+    "TH",
+    "ハーバー"
+  ],
+  "TWISTED_MANSION": [
+    "TM",
+    "ねじれ"
+  ],
+  "SHY_GUY_FALLS": [
+    "SGF",
+    "ヘイ鉱",
+    "ヘイこう"
+  ],
+  "SUNSHINE_AIRPORT": [
+    "SA",
+    "空港",
+    "くうこう"
+  ],
+  "DOLPHIN_SHOALS": [
+    "DS",
+    "岬",
+    "みさき"
+  ],
+  "ELECTRODROME": [
+    "Ed",
+    "エレドリ"
+  ],
+  "MOUNT_WARIO": [
+    "MW",
+    "ワリスノ"
+  ],
+  "CLOUDTOP_CRUISE": [
+    "CC",
+    "スカガ"
+  ],
+  "BONE_DRY_DUNES": [
+    "BDD",
+    "骨々",
+    "骨骨",
+    "ホネホネ"
+  ],
+  "BOWSER_CASTLE": [
+    "BC",
+    "クパキャ"
+  ],
+  "RAINBOW_ROAD": [
+    "RR",
+    "新虹",
+    "しんにじ"
+  ],
+  "WII_MOO_MOO_MEADOWS": [
+    "rMMM",
+    "MMM",
+    "モモカン"
+  ],
+  "GBA_MARIO_CIRCUIT": [
+    "rMC",
+    "グバマリサ"
+  ],
+  "DS_CHEEP_CHEEP_BEACH": [
+    "rCCB",
+    "CCB",
+    "プクプク"
+  ],
+  "N64_TOAD_TURNPIKE": [
+    "rTT",
+    "TT",
+    "ハイウェイ"
+  ],
+  "GCN_DRY_DRY_DESERT": [
+    "rDDD",
+    "カラカラ"
+  ],
+  "SNES_DONUT_PLAINS_3": [
+    "rDP3",
+    "DP3",
+    "平野",
+    "へいや"
+  ],
+  "N64_ROYAL_RACEWAY": [
+    "rRRy",
+    "RRy",
+    "ピチサ"
+  ],
+  "MK7_DK_JUNGLE": [
+    "rDKJ",
+    "DKJ"
+  ],
+  "DS_WARIO_STADIUM": [
+    "rWS",
+    "WS",
+    "ワリスタ"
+  ],
+  "GCN_SHERBET_LAND": [
+    "rSL",
+    "SL",
+    "シャベラン"
+  ],
+  "MK7_MUSIC_PARK": [
+    "rMP",
+    "MP",
+    "rMM",
+    "MM",
+    "ミューパ"
+  ],
+  "N64_YOSHI_VALLEY": [
+    "rYV",
+    "YV",
+    "ヨシバ"
+  ],
+  "DS_TICK_TOCK_CLOCK": [
+    "rTTC",
+    "TTC",
+    "チクタク"
+  ],
+  "MK7_PIRANHA_PLANT_SLIDE": [
+    "rPPS",
+    "PPS",
+    "rPPP",
+    "PPP",
+    "パクスラ"
+  ],
+  "WII_GRUMBLE_VOLCANO": [
+    "rGV",
+    "GV",
+    "火山",
+    "かざん"
+  ],
+  "N64_RAINBOW_ROAD": [
+    "rRRd",
+    "RRd",
+    "N64RR",
+    "64RR",
+    "N64虹",
+    "64虹",
+    "N64にじ",
+    "64にじ",
+    "旧虹",
+    "きゅうにじ"
+  ],
+  "GCN_YOSHI_CIRCUIT": [
+    "dYC",
+    "YC",
+    "ヨシサ"
+  ],
+  "EXCITEBIKE_ARENA": [
+    "dEA",
+    "EA",
+    "エキバ"
+  ],
+  "DRAGON_DRIFTWAY": [
+    "dDD",
+    "DD",
+    "ドラロ"
+  ],
+  "MUTE_CITY": [
+    "dMC",
+    "ミュート"
+  ],
+  "WII_WARIO_GOLD_MINE": [
+    "dWGM",
+    "WGM",
+    "ワリ鉱",
+    "ワリオこう"
+  ],
+  "SNES_RAINBOW_ROAD": [
+    "dRR",
+    "SNESRR",
+    "SFCRR",
+	"SNES虹",
+    "SFC虹",	
+    "SNESにじ",
+    "SFCにじ"
+  ],
+  "ICE_ICE_OUTPOST": [
+    "dIIO",
+    "IIO",
+    "ツツツ"
+  ],
+  "HYRULE_CIRCUIT": [
+    "dHC",
+    "HC",
+    "ハイラル"
+  ],
+  "GCN_BABY_PARK": [
+    "dBP",
+    "BP",
+    "ベビパ"
+  ],
+  "GBA_CHEESE_LAND": [
+    "dCL",
+    "CL",
+    "チーズ"
+  ],
+  "WILD_WOODS": [
+    "dWW",
+    "WW",
+    "ネイチャー"
+  ],
+  "ANIMAL_CROSSING": [
+    "dAC",
+    "AC",
+    "どう森",
+    "どうもり"
+  ],
+  "MK7_NEO_BOWSER_CITY": [
+    "dNBC",
+    "NBC",
+    "dKC",
+    "KC",
+    "ネオパ"
+  ],
+  "GBA_RIBBON_ROAD": [
+    "dRiR",
+    "RiR",
+    "リボン"
+  ],
+  "SUPER_BELL_SUBWAY": [
+    "dSBS",
+    "SBS",
+    "リンメト"
+  ],
+  "BIG_BLUE": [
+    "dBB",
+    "BB"
+  ]
+}

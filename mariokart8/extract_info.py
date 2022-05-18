@@ -3,6 +3,7 @@ import re
 from glob import glob
 from typing import NamedTuple
 
+from mariokart8.countries import COUNTRY_MAP
 from mariokart8.mk8 import MK8Tracks as Tracks
 
 
@@ -20,45 +21,19 @@ class MK8TimeTuple(NamedTuple):
 
 
 class MK8PlayerInfo:
-    countries = {
-        # Unknown:
-        0: "???",
-
-        # Japan:
-        1: "JPN",
-
-        # Americas:
-        8:  "AIA", 9:  "ATG", 10: "ARG", 11: "ABW", 12: "BHS", 13: "BRB", 14: "BLZ", 15: "BOL",
-        16: "BRA", 17: "VGB", 18: "CAN", 19: "CYM", 20: "CHL", 21: "COL", 22: "CRI", 23: "DMA",
-        24: "DOM", 25: "ECU", 26: "SLV", 27: "GUF", 28: "GRD", 29: "GLP", 30: "GTM", 31: "GUY",
-        32: "HTI", 33: "HND", 34: "JAM", 35: "MTQ", 36: "MEX", 37: "MSR", 38: "ANT", 39: "NIC",
-        40: "PAN", 41: "PRY", 42: "PER", 43: "KNA", 44: "LCA", 45: "VCT", 46: "SUR", 47: "TTO",
-        48: "TCA", 49: "USA", 50: "URY", 51: "VIR", 52: "VEN",
-
-        # Europe, Africa, & Oceania:
-        64:  "ALB", 65:  "AUS", 66:  "AUT", 67:  "BEL", 68:  "BIH", 69:  "BWA", 70:  "BGR",
-        71:  "HRV", 72:  "CYP", 73:  "CZE", 74:  "DNK", 75:  "EST", 76:  "FIN", 77:  "FRA",
-        78:  "DEU", 79:  "GRC", 80:  "HUN", 81:  "ISL", 82:  "IRL", 83:  "ITA", 84:  "LVA",
-        85:  "LSO", 86:  "LIE", 87:  "LTU", 88:  "LUX", 89:  "MKD", 90:  "MLT", 91:  "MNE",
-        92:  "MOZ", 93:  "NAM", 94:  "NLD", 95:  "NZL", 96:  "NOR", 97:  "POL", 98:  "PRT",
-        99:  "ROU", 100: "RUS", 101: "SRB", 102: "SVK", 103: "SVN", 104: "ZAF", 105: "ESP",
-        106: "SWZ", 107: "SWE", 108: "CHE", 109: "TUR", 110: "GBR", 111: "ZMB", 112: "ZWE",
-        113: "AZE", 114: "MRT", 115: "MLI", 116: "NER", 117: "TCD", 118: "SDN", 119: "ERI",
-        120: "DJI", 121: "SOM",
-
-        # Southeast Asia:
-        128: "TWN", 136: "KOR", 144: "HKG", 145: "MAC", 152: "IDN", 153: "SGP", 154: "THA",
-        155: "PHL", 156: "MYS", 160: "CHN",
-
-        # Middle East:
-        168: "ARE", 169: "IND", 170: "EGY", 171: "OMN", 172: "QAT", 173: "KWT", 174: "SAU",
-        175: "SYR", 176: "BHR", 177: "JOR"
-    }
-
-    def __init__(self, common_data):
+    def __init__(self, common_data, lang="en"):
         self.country_id = common_data[0x74]
-        self.country = MK8PlayerInfo.countries[self.country_id]
-        self.region_id = common_data[0x75]
+        self.subregion_id = common_data[0x75]
+        if self.country_id in COUNTRY_MAP and self.subregion_id in COUNTRY_MAP[self.country_id].subregions:
+            self.country_code = COUNTRY_MAP[self.country_id].alpha3
+            self.country = COUNTRY_MAP[self.country_id].names[lang]
+            self.subregion = COUNTRY_MAP[self.country_id].subregions[self.subregion_id].names[lang]
+        else:
+            # 0 maps to unknown country and region (should this just be removed from the JSON file?)
+            self.country_code = COUNTRY_MAP[0].alpha3
+            self.country = COUNTRY_MAP[0].names[lang]
+            self.subregion = COUNTRY_MAP[0].subregions[0].names[lang]
+
         self.mii_name = common_data[0x2E:0x42].decode("utf_16")
         self.mii_name = self.mii_name.split("\0", 1)[0]
 
@@ -109,11 +84,11 @@ class MK8GhostInfo:
             splits_pt1 = "%s%s" % (''.join(f"{t.mins:01x}{t.secs:02x}{t.msecs:03x}" for t in self.lap_times[:3]),
                                    splits_pt2)  # Since most tracks have just 3 laps, append filler
         mii = ''.join(f"{b:02x}" for b in self.mii_name_bytes)
-        country = f"{self.country:02x}000000"
+        country = f"{self.country_id:02x}000000"
 
         return header + combo + endtime + splits_pt1 + mii + country + splits_pt2 + ".dat"
 
-    def __init__(self, data):
+    def __init__(self, data, lang="en"):
         data = bytes(data)
         data = data[0x48:] if data[0x0:0x4].decode('utf8') == "CTG0" else data
 
@@ -132,8 +107,17 @@ class MK8GhostInfo:
         self.day = data[0x17]
 
         # Location Info
-        self.country = data[0x2A4]
-        self.subdivision = data[0x2A5]
+        self.country_id = data[0x2A4]
+        self.subregion_id = data[0x2A5]
+        if self.country_id in COUNTRY_MAP and self.subregion_id in COUNTRY_MAP[self.country_id].subregions:
+            self.country_code = COUNTRY_MAP[self.country_id].alpha3
+            self.country = COUNTRY_MAP[self.country_id].names[lang]
+            self.subregion = COUNTRY_MAP[self.country_id].subregions[self.subregion_id].names[lang]
+        else:
+            # 0 maps to unknown country and region (should this just be removed from the JSON file?)
+            self.country_code = COUNTRY_MAP[0].alpha3
+            self.country = COUNTRY_MAP[0].names[lang]
+            self.subregion = COUNTRY_MAP[0].subregions[0].names[lang]
 
         # Combo Info
         self.character = data[0x3B]

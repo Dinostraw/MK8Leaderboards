@@ -30,7 +30,7 @@ class Country:
     def unknown(cls, id_: int):
         return Country(names={"jp": "???", "en": "???", "de": "???", "fr": "???",
                               "es": "???", "it": "???", "nl": "???"},
-                       subregions={0: Subregion.unknown(0), 1: Subregion.unknown(1)},
+                       subregions={0: Subregion.unknown(0)},
                        id_=id_, alpha2="??", alpha3="???")
 
 
@@ -41,8 +41,6 @@ def subregion_decoder(k, v) -> Subregion:
 def country_decoder(k, v) -> Country:
     subregions = {int(k_sub): subregion_decoder(k_sub, v_sub)
                   for k_sub, v_sub in v["subregions"].items()}
-    subregions[0] = Subregion.unknown(0)
-
     return Country(k, v["names"], v["alpha2"], v["alpha3"], subregions)
 
 
@@ -50,7 +48,6 @@ def load_countries(filename: str = path.join(path.dirname(__file__), "countries.
     with open(filename, encoding="utf-8") as f:
         countries = json.load(f)
     countries = {int(k): country_decoder(int(k), v) for k, v in countries.items()}
-    countries[0] = Country.unknown(0)
     return countries
 
 

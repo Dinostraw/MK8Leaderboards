@@ -3,7 +3,7 @@ import re
 from glob import glob
 from typing import NamedTuple
 
-from mariokart8.countries import COUNTRY_MAP
+from mariokart8.countries import Country, COUNTRY_MAP, Subregion
 from mariokart8.mk8 import MK8Tracks as Tracks
 
 
@@ -22,22 +22,23 @@ class MK8TimeTuple(NamedTuple):
 
 class MK8PlayerInfo:
     def __init__(self, common_data, lang="en"):
+        # Location: Country Info
         self.country_id = common_data[0x74]
         if self.country_id in COUNTRY_MAP:
-            self.country_code = COUNTRY_MAP[self.country_id].alpha3
-            self.country = COUNTRY_MAP[self.country_id].names[lang]
+            country_data = COUNTRY_MAP[self.country_id]
         else:
-            # 0 maps to unknown country (should this just be removed from the JSON file?)
-            self.country_code = COUNTRY_MAP[0].alpha3
-            self.country = COUNTRY_MAP[0].names[lang]
+            country_data = Country.unknown(self.country_id)
+        self.country_code = country_data.alpha3
+        self.country = country_data.names[lang]
 
+        # Location: Region Info
         self.subregion_id = common_data[0x75]
-        if self.country_id in COUNTRY_MAP and self.subregion_id in COUNTRY_MAP[self.country_id].subregions:
-            self.subregion = COUNTRY_MAP[self.country_id].subregions[self.subregion_id].names[lang]
+        if self.subregion_id in country_data.subregions:
+            self.subregion = country_data.subregions[self.subregion_id].names[lang]
         else:
-            # 0 also maps to unknown region (should this just be removed from the JSON file?)
-            self.subregion = COUNTRY_MAP[0].subregions[0].names[lang]
+            self.subregion = Subregion.unknown(self.subregion_id).names[lang]
 
+        # User Mii Info
         self.mii_name = common_data[0x2E:0x42].decode("utf_16")
         self.mii_name = self.mii_name.split("\0", 1)[0]
 
@@ -110,22 +111,21 @@ class MK8GhostInfo:
         self.month = data[0x13]
         self.day = data[0x17]
 
-        # Location Info
+        # Location: Country Info
         self.country_id = data[0x2A4]
         if self.country_id in COUNTRY_MAP:
-            self.country_code = COUNTRY_MAP[self.country_id].alpha3
-            self.country = COUNTRY_MAP[self.country_id].names[lang]
+            country_data = COUNTRY_MAP[self.country_id]
         else:
-            # 0 maps to unknown country (should this just be removed from the JSON file?)
-            self.country_code = COUNTRY_MAP[0].alpha3
-            self.country = COUNTRY_MAP[0].names[lang]
+            country_data = Country.unknown(self.country_id)
+        self.country_code = country_data.alpha3
+        self.country = country_data.names[lang]
 
+        # Location: Region Info
         self.subregion_id = data[0x2A5]
-        if self.country_id in COUNTRY_MAP and self.subregion_id in COUNTRY_MAP[self.country_id].subregions:
-            self.subregion = COUNTRY_MAP[self.country_id].subregions[self.subregion_id].names[lang]
+        if self.subregion_id in country_data.subregions:
+            self.subregion = country_data.subregions[self.subregion_id].names[lang]
         else:
-            # 0 also maps to unknown region (should this just be removed from the JSON file?)
-            self.subregion = COUNTRY_MAP[0].subregions[0].names[lang]
+            self.subregion = Subregion.unknown(self.subregion_id).names[lang]
 
         # Combo Info
         self.character = data[0x3B]

@@ -23,15 +23,19 @@ class MK8TimeTuple(NamedTuple):
 class MK8PlayerInfo:
     def __init__(self, common_data, lang="en"):
         self.country_id = common_data[0x74]
-        self.subregion_id = common_data[0x75]
-        if self.country_id in COUNTRY_MAP and self.subregion_id in COUNTRY_MAP[self.country_id].subregions:
+        if self.country_id in COUNTRY_MAP:
             self.country_code = COUNTRY_MAP[self.country_id].alpha3
             self.country = COUNTRY_MAP[self.country_id].names[lang]
-            self.subregion = COUNTRY_MAP[self.country_id].subregions[self.subregion_id].names[lang]
         else:
-            # 0 maps to unknown country and region (should this just be removed from the JSON file?)
+            # 0 maps to unknown country (should this just be removed from the JSON file?)
             self.country_code = COUNTRY_MAP[0].alpha3
             self.country = COUNTRY_MAP[0].names[lang]
+
+        self.subregion_id = common_data[0x75]
+        if self.country_id in COUNTRY_MAP and self.subregion_id in COUNTRY_MAP[self.country_id].subregions:
+            self.subregion = COUNTRY_MAP[self.country_id].subregions[self.subregion_id].names[lang]
+        else:
+            # 0 also maps to unknown region (should this just be removed from the JSON file?)
             self.subregion = COUNTRY_MAP[0].subregions[0].names[lang]
 
         self.mii_name = common_data[0x2E:0x42].decode("utf_16")
@@ -108,15 +112,19 @@ class MK8GhostInfo:
 
         # Location Info
         self.country_id = data[0x2A4]
-        self.subregion_id = data[0x2A5]
-        if self.country_id in COUNTRY_MAP and self.subregion_id in COUNTRY_MAP[self.country_id].subregions:
+        if self.country_id in COUNTRY_MAP:
             self.country_code = COUNTRY_MAP[self.country_id].alpha3
             self.country = COUNTRY_MAP[self.country_id].names[lang]
-            self.subregion = COUNTRY_MAP[self.country_id].subregions[self.subregion_id].names[lang]
         else:
-            # 0 maps to unknown country and region (should this just be removed from the JSON file?)
+            # 0 maps to unknown country (should this just be removed from the JSON file?)
             self.country_code = COUNTRY_MAP[0].alpha3
             self.country = COUNTRY_MAP[0].names[lang]
+
+        self.subregion_id = data[0x2A5]
+        if self.country_id in COUNTRY_MAP and self.subregion_id in COUNTRY_MAP[self.country_id].subregions:
+            self.subregion = COUNTRY_MAP[self.country_id].subregions[self.subregion_id].names[lang]
+        else:
+            # 0 also maps to unknown region (should this just be removed from the JSON file?)
             self.subregion = COUNTRY_MAP[0].subregions[0].names[lang]
 
         # Combo Info

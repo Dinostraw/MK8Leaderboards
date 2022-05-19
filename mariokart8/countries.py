@@ -13,9 +13,9 @@ class Subregion:
 
     @classmethod
     def unknown(cls, id_: int):
-        return Subregion(names={"jp": "???", "en": "???", "de": "???", "fr": "???",
-                                "es": "???", "it": "???", "nl": "???"},
-                         id_=id_, lat=0.0, long=0.0)
+        return cls(names={"jp": "???", "en": "???", "de": "???", "fr": "???",
+                          "es": "???", "it": "???", "nl": "???"},
+                   id_=id_, lat=0.0, long=0.0)
 
 
 @dataclass
@@ -28,10 +28,10 @@ class Country:
 
     @classmethod
     def unknown(cls, id_: int):
-        return Country(names={"jp": "???", "en": "???", "de": "???", "fr": "???",
-                              "es": "???", "it": "???", "nl": "???"},
-                       subregions={0: Subregion.unknown(0)},
-                       id_=id_, alpha2="??", alpha3="???")
+        return cls(names={"jp": "???", "en": "???", "de": "???", "fr": "???",
+                          "es": "???", "it": "???", "nl": "???"},
+                   subregions={0: Subregion.unknown(0)},
+                   id_=id_, alpha2="??", alpha3="???")
 
 
 def subregion_decoder(k, v) -> Subregion:

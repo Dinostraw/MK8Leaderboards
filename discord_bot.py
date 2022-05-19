@@ -95,6 +95,9 @@ async def stats(ctx, *args):
         tracks = [track for track in MK8Tracks]
         embed.title = "Stats for all tracks:"
         embed.description = "```%s```" % format_all_stats((await get_stats(mk8_client, tracks)))
+        await ctx.reply(embed=embed)
+        return
+
     abbr = standardize_abbr(args[0])
     if abbr in abbr_aliases:
         track = abbr_aliases[abbr]

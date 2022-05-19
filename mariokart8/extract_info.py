@@ -3,7 +3,7 @@ import re
 from glob import glob
 from typing import NamedTuple
 
-from mariokart8.countries import Country, COUNTRY_MAP, Subregion
+from mariokart8.countries import CountryMap
 from mariokart8.mk8 import MK8Tracks as Tracks
 
 
@@ -21,22 +21,17 @@ class MK8TimeTuple(NamedTuple):
 
 
 class MK8PlayerInfo:
-    def __init__(self, common_data, lang="en"):
+    def __init__(self, common_data: bytes, lang: str = "en"):
         # Location: Country Info
         self.country_id = common_data[0x74]
-        if self.country_id in COUNTRY_MAP:
-            country_data = COUNTRY_MAP[self.country_id]
-        else:
-            country_data = Country.unknown(self.country_id)
+        country_data = CountryMap.get_country(self.country_id)
         self.country_code = country_data.alpha3
         self.country = country_data.names[lang]
 
         # Location: Region Info
         self.subregion_id = common_data[0x75]
-        if self.subregion_id in country_data.subregions:
-            self.subregion = country_data.subregions[self.subregion_id].names[lang]
-        else:
-            self.subregion = Subregion.unknown(self.subregion_id).names[lang]
+        subregion_data = CountryMap.get_subregion(self.country_id, self.subregion_id)
+        self.subregion = subregion_data.names[lang]
 
         # User Mii Info
         self.mii_name = common_data[0x2E:0x42].decode("utf_16")
@@ -69,7 +64,7 @@ class MK8GhostInfo:
                    0x08: "Bowser Kite", 0x09: "Plane Glider", 0x0A: "MKTV Parafoil", 0x0B: "Gold Glider",
                    0x0C: "Hylian Kite", 0x0D: "Paper Glider"}
 
-    def generate_filename(self, prefix='dg'):
+    def generate_filename(self, prefix: str = 'dg') -> str:
         # Based on the information gathered in this forum post:
         # https://gbatemp.net/threads/post-your-wiiu-cheat-codes-here.395443/post-8640417
         if prefix == 'dg':
@@ -93,7 +88,7 @@ class MK8GhostInfo:
 
         return header + combo + endtime + splits_pt1 + mii + country + splits_pt2 + ".dat"
 
-    def __init__(self, data, lang="en"):
+    def __init__(self, data: bytes, lang: str = "en"):
         data = bytes(data)
         data = data[0x48:] if data[0x0:0x4].decode('utf8') == "CTG0" else data
 
@@ -113,19 +108,14 @@ class MK8GhostInfo:
 
         # Location: Country Info
         self.country_id = data[0x2A4]
-        if self.country_id in COUNTRY_MAP:
-            country_data = COUNTRY_MAP[self.country_id]
-        else:
-            country_data = Country.unknown(self.country_id)
+        country_data = CountryMap.get_country(self.country_id)
         self.country_code = country_data.alpha3
         self.country = country_data.names[lang]
 
         # Location: Region Info
         self.subregion_id = data[0x2A5]
-        if self.subregion_id in country_data.subregions:
-            self.subregion = country_data.subregions[self.subregion_id].names[lang]
-        else:
-            self.subregion = Subregion.unknown(self.subregion_id).names[lang]
+        subregion_data = CountryMap.get_subregion(self.country_id, self.subregion_id)
+        self.subregion = subregion_data.names[lang]
 
         # Combo Info
         self.character = data[0x3B]

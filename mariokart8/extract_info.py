@@ -179,6 +179,7 @@ class MK8DXGhostInfo:
     def __init__(self, data: bytes, lang: str = "en"):
         # Ghost data in Mario Kart 8 Deluxe follows a Little-Endian format
         data = bytes(data)
+        data = data[0x48:] if data[0x0:0x4].decode('utf8') == "0GTC" else data
         if data[0x0:0x8] != b'\x00\x0C\x00\x00\x00\x00\x20\x00':
             raise InvalidGhostFormat(
                 "Ghost not in the proper format: likely not a Mario Kart 8 Deluxe ghost"
@@ -195,7 +196,7 @@ class MK8DXGhostInfo:
         self.month = data[0x10]
         self.day = data[0x14]
 
-        # Location: Country Info
+        # Country Info
         self.country_id = int.from_bytes(data[0x2A0:0x2A2], "little")
 
         # Combo Info

@@ -160,7 +160,7 @@ class MK8DXGhostInfo:
 
         # Ghosts created in-game have very short filenames
         if not staff_ghost:
-            track = self.track - 0x10 if self.track < Tracks.BIG_BLUE.id_ else self.track - 0x1B
+            track = self.track - 0x10 if self.track <= Tracks.BIG_BLUE.id_ else self.track - 0x1B
             return f"{prefix}{track}.dat"
 
         # Staff ghosts have a much more complicated filename format
@@ -238,13 +238,13 @@ class MK8DXGhostInfo:
 
 
 def main():
-    files = glob("../Samples/Output/Ghosts (Deluxe)/Slow/*.dat")
+    files = glob("../Samples/Output/Ghosts (Deluxe)/Slow/sg2f3f*.dat")
     for file in files:
         with open(file, 'rb') as f:
             data = f.read()
         info = MK8DXGhostInfo(data)
         print("Original:  " + re.split(r'[/\\]', file)[-1])
-        print("Generated: " + info.generate_filename('sg', staff_ghost=True))
+        print("Generated: " + info.generate_filename('sg', staff_ghost=False))
         print(info, end="\n\n")
 
 

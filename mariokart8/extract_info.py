@@ -67,6 +67,12 @@ class MK8GhostInfo:
     def generate_filename(self, prefix: Literal['dg', 'gs', 'sg'] = 'dg') -> str:
         # Based on the information gathered in this forum post:
         # https://gbatemp.net/threads/post-your-wiiu-cheat-codes-here.395443/post-8640417
+
+        # Refer to the following link for the full breakdown of the filename structure:
+        # https://github.com/Dinostraw/MK8Leaderboards/wiki/Ghost-Data-(Wii-U)#filename-format
+        if prefix not in ('dg', 'gs', 'sg'):
+            raise ValueError("Prefix must either be 'dg', 'gs', or 'sg'")
+
         if prefix == 'dg':
             header = f"{prefix}00{self.track:02x}"
         else:
@@ -82,8 +88,9 @@ class MK8GhostInfo:
             splits_pt2 = ''.join([f'{t.mins:01x}{t.secs:02x}{t.msecs:03x}' for t in self.lap_times[5:]])
         else:
             splits_pt2 = "93b3e7" * 2  # Two filler splits, each represents a time of 9:59.999
-            splits_pt1 = "%s%s" % (''.join(f"{t.mins:01x}{t.secs:02x}{t.msecs:03x}" for t in self.lap_times[:3]),
-                                   splits_pt2)  # Since most tracks have just 3 laps, append filler
+            splits_pt1 = (''.join(f"{t.mins:01x}{t.secs:02x}{t.msecs:03x}" for t in self.lap_times[:3])
+                          + splits_pt2)  # Since most tracks have just 3 laps, append filler
+
         mii = ''.join(f"{b:02x}" for b in self.mii_name_bytes)
         country = f"{self.country_id:02x}000000"
 
@@ -102,7 +109,7 @@ class MK8GhostInfo:
 
         # Basic Info
         self.track = data[0x17F]
-        # self.motion = True if data[0x2B3] == 0 else False
+        # self.motion = True if data[0x453] != 1 else False  # Still uncertain
         self.mii_name_bytes = data[0x304:0x318]
         self.mii_name = self.mii_name_bytes.decode("utf_16_be")  # Force byte order
 
@@ -145,9 +152,18 @@ class MK8GhostInfo:
 
 
 class MK8DXGhostInfo:
-    def generate_filename(self, prefix: Literal['dg', 'gs', 'sg', 'fg'] = 'dg') -> str:
-        # Refer to the following link for the full breakdown of the filename structure:
-        # https://github.com/Dinostraw/MK8Leaderboards/wiki/Ghost-Data-(Deluxe)#filename-format
+    def generate_filename(self, prefix: Literal['sg', 'fg'] = 'sg', staff_ghost=False) -> str:
+        # Refer to the following link for the full breakdown of the filename structures:
+        # https://github.com/Dinostraw/MK8Leaderboards/wiki/Ghost-Data-(Deluxe)#filename-formats
+        if prefix not in ('sg', 'fg'):
+            raise ValueError("Prefix must either be 'sg' or 'fg'")
+
+        # Ghosts created in-game have very short filenames
+        if not staff_ghost:
+            track = self.track - 0x10 if self.track < Tracks.BIG_BLUE.id_ else self.track - 0x1B
+            return f"{prefix}{track}.dat"
+
+        # Staff ghosts have a much more complicated filename format
         if prefix == 'dg':
             header = f"{prefix}00{self.track:02x}"
         # For the 48 base-game tracks (Big Blue has the highest ID of these)
@@ -166,8 +182,8 @@ class MK8DXGhostInfo:
             splits = ''.join([f'{t.mins:01x}{t.secs:02x}{t.msecs:03x}' for t in self.lap_times])
         else:
             filler = "000000" * 4  # Four filler splits, each represents a time of 0:00.000
-            splits = "%s%s" % (''.join(f"{t.mins:01x}{t.secs:02x}{t.msecs:03x}"for t in self.lap_times[:3]),
-                               filler)  # Since most tracks have just 3 laps, append filler
+            splits = (''.join(f'{t.mins:01x}{t.secs:02x}{t.msecs:03x}' for t in self.lap_times[:3])
+                      + filler)  # Since most tracks have just 3 laps, append filler
 
         pnb = self.player_name_bytes
         # Convert each UTF-16 character's byte order from little-endian to big-endian and join them
@@ -228,7 +244,7 @@ def main():
             data = f.read()
         info = MK8DXGhostInfo(data)
         print("Original:  " + re.split(r'[/\\]', file)[-1])
-        print("Generated: " + info.generate_filename('fg'))
+        print("Generated: " + info.generate_filename('sg', staff_ghost=True))
         print(info, end="\n\n")
 
 

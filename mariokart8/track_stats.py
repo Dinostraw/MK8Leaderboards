@@ -53,7 +53,7 @@ async def get_stats(client: MK8Client, tracks: Union[MK8Tracks, List[MK8Tracks]]
             ranking_client = RankingClient(be_client)
 
             order_param = RankingOrderParam()
-            order_param.order_calc = RankingOrderCalc.ORDINAL
+            order_param.order_calc = RankingOrderCalc.STANDARD
             order_param.offset = 0  # Start at 1st place
             order_param.count = 0  # Download literally nothing
 

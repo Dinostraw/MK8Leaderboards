@@ -30,13 +30,13 @@ REGION_NAME = os.getenv("REGION_NAME")
 LANGUAGE = os.getenv("LANGUAGE")
 
 # Track IDs: https://github.com/Kinnay/NintendoClients/wiki/Mario-Kart-8-Track-IDs
-TRACK_ID = Tracks.DS_TICK_TOCK_CLOCK.id_
+TRACK_ID = Tracks.N64_RAINBOW_ROAD.id_
 NNID = "Dinostraw"  # NNID of targeted player
 
 
 async def get_common_data(client: MK8Client, nnid: str) -> bytes:
     order_param = RankingOrderParam()
-    order_param.order_calc = RankingOrderCalc.ORDINAL
+    order_param.order_calc = RankingOrderCalc.STANDARD
     order_param.offset = 0
     order_param.count = 1
 
@@ -81,7 +81,7 @@ async def main():
         f.write(ghost_data)
 
     # common_data = await get_common_data(mk8_client, NNID)
-    # with open("./Output/Common Data/common_data7.bin", "wb") as f:
+    # with open("./Output/Common Data/common_data.bin", "wb") as f:
     #     f.write(common_data)
 
 

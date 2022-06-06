@@ -99,7 +99,7 @@ async def get_timesheet(client: MK8Client, nnid: str) -> Timesheet:
             ranking_client = RankingClient(be_client)
 
             order_param = RankingOrderParam()
-            order_param.order_calc = RankingOrderCalc.ORDINAL
+            order_param.order_calc = RankingOrderCalc.STANDARD
             order_param.offset = 0
             order_param.count = 1
 
@@ -121,7 +121,7 @@ async def get_timesheets(client: MK8Client, nnids: List[str]) -> List[Timesheet]
             ranking_client = RankingClient(be_client)
 
             order_param = RankingOrderParam()
-            order_param.order_calc = RankingOrderCalc.ORDINAL
+            order_param.order_calc = RankingOrderCalc.STANDARD
             order_param.offset = 0
             order_param.count = len(nnids) + 1
 
@@ -144,7 +144,7 @@ async def get_timesheets(client: MK8Client, nnids: List[str]) -> List[Timesheet]
 
 # async def timesheet_test(ranking_client: RankingClient, nnas_client: NNASClient, nnid: str) -> Timesheet:
 #     order_param = RankingOrderParam()
-#     order_param.order_calc = RankingOrderCalc.ORDINAL
+#     order_param.order_calc = RankingOrderCalc.STANDARD
 #     order_param.offset = 0
 #     order_param.count = 1
 #

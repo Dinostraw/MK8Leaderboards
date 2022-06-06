@@ -109,9 +109,10 @@ class MK8GhostInfo:
 
         # Basic Info
         self.track = data[0x17F]
-        # self.motion = True if data[0x453] != 1 else False  # Still uncertain
+        # self.motion = data[0x2AC:0x2B4]  # Still uncertain
         self.mii_name_bytes = data[0x304:0x318]
-        self.mii_name = self.mii_name_bytes.decode("utf_16_be")  # Force byte order
+        # Force big endian; strip everything after the null character if one occurs
+        self.mii_name = self.mii_name_bytes.decode("utf_16_be").split("\0", 1)[0]
 
         # Timestamp
         self.year = int.from_bytes(data[0x0E:0x10], "big")
@@ -205,7 +206,8 @@ class MK8DXGhostInfo:
         self.track = data[0x1CC]
         # self.motion = True if data[0x2B3] == 0 else False
         self.player_name_bytes = data[0x254:0x268]
-        self.player_name = self.player_name_bytes.decode("utf_16")
+        # Strip everything after the null character if one occurs
+        self.player_name = self.player_name_bytes.decode("utf_16").split("\0", 1)[0]
 
         # Timestamp
         self.year = int.from_bytes(data[0x0C:0x10], "little")
@@ -238,13 +240,14 @@ class MK8DXGhostInfo:
 
 
 def main():
-    files = glob("../Samples/Output/Ghosts (Deluxe)/Slow/sg2f3f*.dat")
+    files = glob("../Samples/Output/Ghosts/*.dat")  # Ghost file(s)
     for file in files:
         with open(file, 'rb') as f:
             data = f.read()
-        info = MK8DXGhostInfo(data)
-        print("Original:  " + re.split(r'[/\\]', file)[-1])
-        print("Generated: " + info.generate_filename('sg', staff_ghost=False))
+        info = MK8GhostInfo(data)
+        filename = re.split(r'[/\\]', file)[-1]
+        print("Original:  " + filename)
+        print("Generated: " + info.generate_filename(filename[:2]))
         print(info, end="\n\n")
 
 

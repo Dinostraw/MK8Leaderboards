@@ -95,7 +95,7 @@ async def stats(ctx, *args):
     embed = discord.Embed()
     if len(args) == 0:
         tracks = [track for track in MK8Tracks]
-        embed.title = "Stats for al/l tracks:"
+        embed.title = "Stats for all tracks:"
         embed.description = "```%s```" % format_all_stats((await get_stats(mk8_client, tracks)))
         await ctx.reply(embed=embed)
         return

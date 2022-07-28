@@ -6,8 +6,9 @@ from typing import Dict, List, Union
 from nintendo.nex import backend, common
 from nintendo.nex.ranking import RankingClient, RankingMode, RankingOrderCalc
 from nintendo.nex.ranking import RankingOrderParam, RankingRankData
-from nintendo.nnas import NNASClient
+from nintendo.nnas import NNASClient, NNASError
 
+from mariokart8.extract_info import MK8PlayerInfo
 from mariokart8.mk8 import MK8Tracks, MK8Client
 
 
@@ -104,7 +105,6 @@ async def get_timesheet(client: MK8Client, nnid: str) -> Timesheet:
             order_param.count = 1
 
             pid = await client.nnas.get_pid(nnid)
-            mii_name = (await client.nnas.get_mii(pid)).name
 
             tasks = [
                 asyncio.ensure_future(get_time(pid, track.id_, ranking_client, order_param))
@@ -112,6 +112,16 @@ async def get_timesheet(client: MK8Client, nnid: str) -> Timesheet:
             ]
             times = await asyncio.gather(*tasks)
             timesheet = {track.abbr: time for track, time in zip(MK8Tracks, times)}
+
+            try:
+                mii_name = (await client.nnas.get_mii(pid)).name
+            except NNASError:
+                mii_name = ""
+                for time in timesheet.values():
+                    if time is not None:
+                        mii_name = MK8PlayerInfo(time.common_data).mii_name
+                        break
+
             return Timesheet(pid, nnid, mii_name, timesheet)
 
 
@@ -125,21 +135,34 @@ async def get_timesheets(client: MK8Client, nnids: List[str]) -> List[Timesheet]
             order_param.offset = 0
             order_param.count = len(nnids) + 1
 
-            pids = (await client.nnas.get_pids(nnids)).values()
-            miis = await client.nnas.get_miis(pids)
-            timesheets = {mii.pid: Timesheet(mii.pid, mii.nnid, mii.name) for mii in miis}
+            pids = await client.nnas.get_pids(nnids)
+            # Try-block is necessary in case all the requested accounts have since been deleted
+            try:
+                miis = {mii.pid: mii for mii in (await client.nnas.get_miis(pids.values()))}
+            except NNASError:
+                miis = {}
 
             tasks = [
-                asyncio.ensure_future(get_times(pids, track.id_, ranking_client, order_param))
+                asyncio.ensure_future(get_times(pids.values(), track.id_, ranking_client, order_param))
                 for track in MK8Tracks
             ]
             times = await asyncio.gather(*tasks)
 
-            for pid in pids:
-                timesheets[pid].records.update(
-                    {track.abbr: time[pid] for track, time in zip(MK8Tracks, times)}
-                )
-            return list(timesheets.values())
+            timesheets = []
+            for nnid, pid in pids.items():
+                records = {track.abbr: time[pid] for track, time in zip(MK8Tracks, times)}
+                if pid in miis:
+                    nnid = miis[pid].nnid
+                    mii_name = miis[pid].name
+                else:
+                    mii_name = ""
+                    for time in records.values():
+                        if time is not None:
+                            mii_name = MK8PlayerInfo(time.common_data).mii_name
+                            break
+                timesheets.append(Timesheet(pid, nnid, mii_name, records))
+
+            return timesheets
 
 
 # async def timesheet_test(ranking_client: RankingClient, nnas_client: NNASClient, nnid: str) -> Timesheet:

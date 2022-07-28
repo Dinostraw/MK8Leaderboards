@@ -34,8 +34,8 @@ class MK8PlayerInfo:
         self.subregion = subregion_data.names[lang]
 
         # User Mii Info
-        self.mii_name = common_data[0x2E:0x42].decode("utf_16")
-        self.mii_name = self.mii_name.split("\0", 1)[0]
+        self.mii_name = common_data[0x2E:0x42].decode("utf_16").split("\0", 1)[0]
+        self.mac_address = ''.join(f"{int(x):02X}" for x in common_data[0x24:0x2A])
 
     def __str__(self):
         return ''.join(f"{k}: {v}\n" for k, v in self.__dict__.items())
@@ -56,7 +56,7 @@ class MK8GhostInfo:
                  0x04: "Slick", 0x05: "Metal", 0x06: "Button", 0x07: "Off Road",
                  0x08: "Sponge", 0x09: "Wood", 0x0A: "Cushion", 0x0B: "Blue Standard",
                  0x0C: "Hot Monster", 0x0D: "Azure Roller", 0x0E: "Crimson Slim", 0x0F: "Cyber Slick",
-                 0x10: "Retro Off Road", 0x11: "Gold Tires", 0x12: "Gla Tires", 0x13: "Triforce Tires",
+                 0x10: "Retro Off Road", 0x11: "Gold Tires", 0x12: "GLA Tires", 0x13: "Triforce Tires",
                  0x14: "Leaf Tires"}
 
     glider_dict = {0x00: "Super Glider", 0x01: "Cloud Glider", 0x02: "Wario Wing", 0x03: "Waddle Wing",
@@ -74,6 +74,7 @@ class MK8GhostInfo:
             raise ValueError("Prefix must either be 'dg', 'gs', or 'sg'")
 
         if prefix == 'dg':
+            # The 00 can be anything from 00 to 0f inclusive
             header = f"{prefix}00{self.track:02x}"
         else:
             header = f"{prefix}{self.track-0x10:02x}{self.track:02x}"
@@ -92,11 +93,12 @@ class MK8GhostInfo:
                           + splits_pt2)  # Since most tracks have just 3 laps, append filler
 
         mii = ''.join(f"{b:02x}" for b in self.mii_name_bytes)
-        country = f"{self.country_id:02x}000000"
+        country = f"{self.country_id:02x}"
+        motion = f"{int(self.motion):02x}0000"
 
-        return header + combo + endtime + splits_pt1 + mii + country + splits_pt2 + ".dat"
+        return header + combo + endtime + splits_pt1 + mii + country + motion + splits_pt2 + ".dat"
 
-    def __init__(self, data: bytes, lang: str = "en"):
+    def __init__(self, data: bytes, motion=False, lang: str = "en"):
         # Ghost data in Mario Kart 8 for the most part is formatted as Big-Endian
         # The embedded Mii data seems to be formatted as Little-Endian, however
         data = bytes(data)
@@ -109,7 +111,7 @@ class MK8GhostInfo:
 
         # Basic Info
         self.track = data[0x17F]
-        # self.motion = data[0x2AC:0x2B4]  # Still uncertain
+        self.motion = motion  # Still being investigated if this exists internally
         self.mii_name_bytes = data[0x304:0x318]
         # Force big endian; strip everything after the null character if one occurs
         self.mii_name = self.mii_name_bytes.decode("utf_16_be").split("\0", 1)[0]
@@ -118,6 +120,10 @@ class MK8GhostInfo:
         self.year = int.from_bytes(data[0x0E:0x10], "big")
         self.month = data[0x13]
         self.day = data[0x17]
+        self.weekday = data[0x1B]
+        self.hour = data[0x1F]
+        self.min = data[0x23]
+        self.sec = data[0x27]
 
         # Location: Country Info
         self.country_id = data[0x2A4]
@@ -153,22 +159,23 @@ class MK8GhostInfo:
 
 
 class MK8DXGhostInfo:
-    def generate_filename(self, prefix: Literal['sg', 'fg'] = 'sg', staff_ghost=False) -> str:
+    def generate_filename(self, prefix: Literal['sg', 'fg', 'dg'] = 'sg', staff_ghost=False) -> str:
         # Refer to the following link for the full breakdown of the filename structures:
         # https://github.com/Dinostraw/MK8Leaderboards/wiki/Ghost-Data-(Deluxe)#filename-formats
-        if prefix not in ('sg', 'fg'):
-            raise ValueError("Prefix must either be 'sg' or 'fg'")
+        if prefix not in ('sg', 'fg', 'dg'):
+            raise ValueError("Prefix must either be 'sg', 'fg', or 'dg'")
 
         # Ghosts created in-game have very short filenames
         if not staff_ghost:
-            track = self.track - 0x10 if self.track <= Tracks.BIG_BLUE.id_ else self.track - 0x1B
-            return f"{prefix}{track}.dat"
+            if prefix == 'dg':
+                order = 0  # Can be anything from 0 to 31 inclusive
+            else:
+                order = self.track - 0x10 if self.track <= Tracks.BIG_BLUE.id_ else self.track - 0x1B
+            return f"{prefix}{order:02d}.dat"
 
         # Staff ghosts have a much more complicated filename format
-        if prefix == 'dg':
-            header = f"{prefix}00{self.track:02x}"
         # For the 48 base-game tracks (Big Blue has the highest ID of these)
-        elif self.track <= Tracks.BIG_BLUE.id_:
+        if self.track <= Tracks.BIG_BLUE.id_:
             header = f"{prefix}{self.track-0x10:02x}{self.track:02x}"
         # For the DLC tracks
         else:
@@ -189,11 +196,12 @@ class MK8DXGhostInfo:
         pnb = self.player_name_bytes
         # Convert each UTF-16 character's byte order from little-endian to big-endian and join them
         player = ''.join(f"{pnb[x+1]:02x}{pnb[x]:02x}" for x in range(0, len(pnb), 2))
-        country = f"{self.country_id:04x}000000"
+        country = f"{self.country_id:04x}"
+        motion = f"{int(self.motion):02x}0000"
 
-        return header + combo + endtime + splits + player + country + ".dat"
+        return header + combo + endtime + splits + player + country + motion + ".dat"
 
-    def __init__(self, data: bytes, lang: str = "en"):
+    def __init__(self, data: bytes, motion=False, lang: str = "en"):
         # Ghost data in Mario Kart 8 Deluxe follows a Little-Endian format
         data = bytes(data)
         data = data[0x48:] if data[0x0:0x4].decode('utf8') == "0GTC" else data
@@ -204,7 +212,14 @@ class MK8DXGhostInfo:
 
         # Basic Info
         self.track = data[0x1CC]
-        # self.motion = True if data[0x2B3] == 0 else False
+        mode = data[0x3C]
+        if mode == 2:
+            self.mode = "150cc"
+        elif mode == 3:
+            self.mode = "200cc"
+        else:
+            self.mode = "???"
+        self.motion = motion  # Still being investigated if this exists internally
         self.player_name_bytes = data[0x254:0x268]
         # Strip everything after the null character if one occurs
         self.player_name = self.player_name_bytes.decode("utf_16").split("\0", 1)[0]
@@ -213,6 +228,10 @@ class MK8DXGhostInfo:
         self.year = int.from_bytes(data[0x0C:0x10], "little")
         self.month = data[0x10]
         self.day = data[0x14]
+        self.weekday = data[0x18]
+        self.hour = data[0x1C]
+        self.min = data[0x20]
+        self.sec = data[0x24]
 
         # Country Info
         self.country_id = int.from_bytes(data[0x2A0:0x2A2], "little")
@@ -240,12 +259,14 @@ class MK8DXGhostInfo:
 
 
 def main():
-    files = glob("../Samples/Output/Ghosts/*.dat")  # Ghost file(s)
+    files = glob("../Output/Ghosts/*.dat")  # Ghost file(s)
     for file in files:
         with open(file, 'rb') as f:
             data = f.read()
-        info = MK8GhostInfo(data)
         filename = re.split(r'[/\\]', file)[-1]
+        # if filename[:2] not in ('sg', 'fg', 'dg'):
+        #     continue
+        info = MK8GhostInfo(data, motion=filename[96:98] != '00')
         print("Original:  " + filename)
         print("Generated: " + info.generate_filename(filename[:2]))
         print(info, end="\n\n")

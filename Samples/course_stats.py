@@ -4,8 +4,8 @@ import os
 import anyio
 from dotenv import load_dotenv
 
-from mariokart8.mk8 import MK8Client, MK8Tracks
-from mariokart8.track_stats import format_all_stats, get_stats
+from mk8boards.mk8.mk8 import MK8Client, MK8Tracks
+from mk8boards.mk8.track_stats import format_all_stats, get_stats
 
 logging.basicConfig(level=logging.INFO)
 
@@ -33,6 +33,14 @@ async def main():
                            USERNAME, PASSWORD)
     await mk8_client.login()
     stats = await get_stats(mk8_client, [track for track in MK8Tracks])
+
+    ranks = {stat[0]: n for n, stat in enumerate(sorted(stats.items(), reverse=True, key=lambda x: x[1][0]),
+                                                 start=1)}
+    print("Rank | Track | Total Times")
+    print("=" * 26)
+    for abbr, tstats in stats.items():
+        print(f"{int(ranks[abbr]):>4d} | {abbr:>5s} | {int(tstats[0]):>11d}")
+
     stats = {k: v for k, v in sorted(stats.items(), key=lambda x: x[1][0])}
     print(format_all_stats(stats))
 

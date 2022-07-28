@@ -1,14 +1,12 @@
 import json
 import os
 from enum import Enum
-from typing import Any, Callable
 
 from nintendo import nnas
 from nintendo.games import MK8
-from nintendo.nex import settings, backend
-from nintendo.nex.ranking import RankingClient
+from nintendo.nex import settings
 
-from str_mappings import standardize_abbr
+from mk8boards.str_mappings import standardize_abbr
 
 
 class MK8Client:

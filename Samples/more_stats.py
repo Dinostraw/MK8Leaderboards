@@ -2,11 +2,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.ticker import FuncFormatter
 
-from mariokart8.mk8 import MK8Tracks as Tracks
-from mariokart8.timesheet import format_time
+from mk8boards.mk8.mk8 import MK8Tracks as Tracks
+from mk8boards.mk8.timesheet import format_time
 
 # Modify in between here =================================================================================
-DIRECTORY = "./Output/Boards/"
+DIRECTORY = "../Output/Boards/"
 FILENAME = "55 WW 2022-05-18 07-43.csv"
 WR = 104298  # WR time (in milliseconds)
 SG = 127868  # Staff Ghost time (in milliseconds)
@@ -177,7 +177,7 @@ def main():
     ax.axvline(x=SG, color="crimson", linewidth=1, linestyle="--", label="SG")
     plt.margins(0, 0)
     plt.title(f"{track_name} Time Distribution")
-    plt.savefig(f"./Output/Plots/{track_abbr} Time Distribution (1 sec).png",
+    plt.savefig(f"../Output/Plots/{track_abbr} Time Distribution (1 sec).png",
                 dpi=1200, bbox_inches="tight")
     plt.show()
 

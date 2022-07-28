@@ -1,10 +1,9 @@
-import os
 import re
 from glob import glob
 from typing import Literal, NamedTuple
 
-from mariokart8.countries import CountryMap
-from mariokart8.mk8 import MK8Tracks as Tracks
+from mk8boards.mk8.countries import CountryMap
+from mk8boards.mk8.mk8 import MK8Tracks as Tracks
 
 
 class InvalidGhostFormat(Exception):

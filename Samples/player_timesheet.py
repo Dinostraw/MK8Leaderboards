@@ -4,8 +4,8 @@ import os
 import anyio
 from dotenv import load_dotenv
 
-from mariokart8.mk8 import MK8Client
-from mariokart8.timesheet import get_timesheet
+from mk8boards.mk8.mk8 import MK8Client
+from mk8boards.mk8.timesheet import get_timesheet
 
 logging.basicConfig(level=logging.INFO)
 

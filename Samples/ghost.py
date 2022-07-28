@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 from nintendo.nex import backend, datastore
 from nintendo.nex.ranking import RankingClient, RankingMode, RankingOrderCalc, RankingOrderParam
 
-from mariokart8.extract_info import MK8GhostInfo
-from mariokart8.mk8 import MK8Client, MK8Tracks as Tracks
+from mk8boards.mk8.extract_info import MK8GhostInfo
+from mk8boards.mk8.mk8 import MK8Client, MK8Tracks as Tracks
 
 logging.basicConfig(level=logging.INFO)
 
@@ -30,8 +30,8 @@ REGION_NAME = os.getenv("REGION_NAME")
 LANGUAGE = os.getenv("LANGUAGE")
 
 # Track IDs: https://github.com/Kinnay/NintendoClients/wiki/Mario-Kart-8-Track-IDs
-TRACK_ID = Tracks.N64_RAINBOW_ROAD.id_
-NNID = "Dinostraw"  # NNID of targeted player
+TRACK_ID = Tracks.N64_ROYAL_RACEWAY.id_
+NNID = "xXLaFerrariXx"  # NNID of targeted player
 
 
 async def get_common_data(client: MK8Client, nnid: str) -> bytes:
@@ -75,13 +75,19 @@ async def main():
     ghost_data = await get_ghost(mk8_client, NNID)
     info = MK8GhostInfo(ghost_data)
     print(info)
+    print("internal mii:", ''.join(f"{x:02X}" for x in ghost_data[0x244:0x2A0]))
+    print("crc-16:", ''.join(f"{x:02X}" for x in ghost_data[0x2A0:0x2A4]))
     filename = info.generate_filename()
     print(filename)
-    with open("./Output/Ghosts/" + filename, "wb") as f:
-        f.write(ghost_data)
+    # with open("../Output/Ghosts/" + filename, "wb") as f:
+    #     f.write(ghost_data)
 
-    # common_data = await get_common_data(mk8_client, NNID)
-    # with open("./Output/Common Data/common_data.bin", "wb") as f:
+    common_data = await get_common_data(mk8_client, NNID)
+    print(common_data[0x5C:0x70].decode("utf_16").split("\0", 1)[0])
+    print(''.join(f"{x:02X}" for x in common_data[0x18:0x20]),
+          ''.join(f"{x:02X}" for x in common_data[0x24:0x2A]))
+    print(''.join(f"{x:02X}" for x in common_data[0x14:0x70]))
+    # with open("../Output/Common Data/common_data.bin", "wb") as f:
     #     f.write(common_data)
 
 

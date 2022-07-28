@@ -9,21 +9,21 @@ from nintendo.nex.ranking import RankingClient, RankingMode, RankingOrderCalc
 from nintendo.nex.ranking import RankingOrderParam, RankingResult
 from nintendo.nnas import NNASClient
 
-from mariokart8.mk8 import MK8Client
+from mk8boards.mk8.mk8 import MK8Client
 
 _AltInfo = namedtuple("_AltInfo", ["main", "alts"])
-with open(os.path.join(os.path.dirname(__file__), "./filters/alts.json"), 'r') as f:
+with open(os.path.join(os.path.dirname(__file__), "filters/alts.json"), 'r') as f:
     _alts = {int(main): _AltInfo(True, [int(alt) for alt in alts])
              for main, alts in json.load(f).items()}
 _alts.update({alt: _AltInfo(False, [main]) for main, info in _alts.items() for alt in info.alts})
 
-with open(os.path.join(os.path.dirname(__file__), "./filters/banned.txt"), 'r') as f:
+with open(os.path.join(os.path.dirname(__file__), "filters/banned.txt"), 'r') as f:
     _banned = {int(line.strip()) for line in f.readlines()}
 
-with open(os.path.join(os.path.dirname(__file__), "./filters/blacklist.json"), 'r') as f:
+with open(os.path.join(os.path.dirname(__file__), "filters/blacklist.json"), 'r') as f:
     _blacklist = {int(main): {int(alt) for alt in alts} for main, alts in json.load(f).items()}
 
-with open(os.path.join(os.path.dirname(__file__), "./filters/hacked.txt"), 'r') as f:
+with open(os.path.join(os.path.dirname(__file__), "filters/hacked.txt"), 'r') as f:
     _hacked = {int(line.strip()) for line in f.readlines()}
 
 

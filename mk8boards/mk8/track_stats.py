@@ -4,8 +4,8 @@ from typing import Dict, List, Union
 from nintendo.nex import backend
 from nintendo.nex.ranking import RankingClient, RankingOrderCalc, RankingOrderParam, RankingStatFlags
 
-from mariokart8.mk8 import MK8Tracks, MK8Client
-from mariokart8.timesheet import format_time
+from mk8boards.mk8.mk8 import MK8Tracks, MK8Client
+from mk8boards.mk8.timesheet import format_time
 
 
 def format_all_stats(stats: Dict[str, List[float]]) -> str:

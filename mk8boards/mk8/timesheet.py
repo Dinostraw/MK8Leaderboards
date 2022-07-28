@@ -6,10 +6,10 @@ from typing import Dict, List, Union
 from nintendo.nex import backend, common
 from nintendo.nex.ranking import RankingClient, RankingMode, RankingOrderCalc
 from nintendo.nex.ranking import RankingOrderParam, RankingRankData
-from nintendo.nnas import NNASClient, NNASError
+from nintendo.nnas import NNASError
 
-from mariokart8.extract_info import MK8PlayerInfo
-from mariokart8.mk8 import MK8Tracks, MK8Client
+from mk8boards.mk8.extract_info import MK8PlayerInfo
+from mk8boards.mk8.mk8 import MK8Tracks, MK8Client
 
 
 @dataclass(frozen=True)

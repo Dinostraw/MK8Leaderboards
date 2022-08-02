@@ -13,10 +13,12 @@
   ],
   "THWOMP_RUINS": [
     "TR",
+    "いせき",
     "ドッスン"
   ],
   "MARIO_CIRCUIT": [
     "MC",
+    "マリサ",
     "新マリサ",
     "しんマリサ"
   ],
@@ -26,10 +28,12 @@
   ],
   "TWISTED_MANSION": [
     "TM",
-    "ねじれ"
+    "ねじれ",
+    "ねじマ"
   ],
   "SHY_GUY_FALLS": [
     "SGF",
+    "ヘイホー",
     "ヘイ鉱",
     "ヘイこう"
   ],
@@ -41,7 +45,8 @@
   "DOLPHIN_SHOALS": [
     "DS",
     "岬",
-    "みさき"
+    "みさき",
+    "ドルミ"
   ],
   "ELECTRODROME": [
     "Ed",
@@ -49,7 +54,11 @@
   ],
   "MOUNT_WARIO": [
     "MW",
-    "ワリスノ"
+    "ワリスノ",
+    "スノ",
+    "雪山",
+    "ゆきやま",
+    "せつざん"
   ],
   "CLOUDTOP_CRUISE": [
     "CC",
@@ -77,12 +86,15 @@
   ],
   "GBA_MARIO_CIRCUIT": [
     "rMC",
-    "グバマリサ"
+    "グバマリサ",
+    "GBAマリサ",
+    "GBA"
   ],
   "DS_CHEEP_CHEEP_BEACH": [
     "rCCB",
     "CCB",
-    "プクプク"
+    "プクプク",
+    "プクビ"
   ],
   "N64_TOAD_TURNPIKE": [
     "rTT",
@@ -91,7 +103,9 @@
   ],
   "GCN_DRY_DRY_DESERT": [
     "rDDD",
-    "カラカラ"
+    "カラカラ",
+    "さばく",
+    "カラさば"
   ],
   "SNES_DONUT_PLAINS_3": [
     "rDP3",
@@ -106,7 +120,8 @@
   ],
   "MK7_DK_JUNGLE": [
     "rDKJ",
-    "DKJ"
+    "DKJ",
+    "ジャングル"
   ],
   "DS_WARIO_STADIUM": [
     "rWS",
@@ -115,7 +130,6 @@
   ],
   "GCN_SHERBET_LAND": [
     "rSL",
-    "SL",
     "シャベラン"
   ],
   "MK7_MUSIC_PARK": [
@@ -197,7 +211,8 @@
   "ICE_ICE_OUTPOST": [
     "dIIO",
     "IIO",
-    "ツツツ"
+    "ツツツ",
+    "ツルツル"
   ],
   "HYRULE_CIRCUIT": [
     "dHC",
@@ -223,7 +238,9 @@
     "dAC",
     "AC",
     "どう森",
-    "どうもり"
+    "どうもり",
+    "ぶつ森",
+    "ぶつもり"
   ],
   "MK7_NEO_BOWSER_CITY": [
     "dNBC",
@@ -240,10 +257,89 @@
   "SUPER_BELL_SUBWAY": [
     "dSBS",
     "SBS",
+    "リンリン",
     "リンメト"
   ],
   "BIG_BLUE": [
     "dBB",
     "BB"
+  ],
+  "TOUR_PARIS_PROMENADE": [
+    "bPP",
+    "PP"
+  ],
+  "MK7_TOAD_CIRCUIT": [
+    "bTC",
+    "TC"
+  ],
+  "N64_CHOCO_MOUNTAIN": [
+    "bCMo",
+    "bCMt",
+    "bCM64",
+    "CMo",
+    "CMt",
+    "CM64",
+    "64CM",
+    "N64CM",
+    "choco"
+  ],
+  "WII_COCONUT_MALL": [
+    "bCMa",
+    "bCMWii",
+    "bCMw",
+    "bCMl",
+    "CMa",
+    "CMWii",
+    "CMl",
+    "WiiCM",
+    "mall",
+    "ココモ"
+  ],
+  "TOUR_TOKYO_BLUR": [
+    "bTB",
+    "TB"
+  ],
+  "DS_SHROOM_RIDGE": [
+    "bSR",
+    "SR",
+    "キノリ"
+  ],
+  "GBA_SKY_GARDEN": [
+    "bSG",
+    "SG"
+  ],
+  "TOUR_NINJA_HIDEAWAY": [
+    "bNH",
+    "NH"
+  ],
+  "TOUR_NEW_YORK_MINUTE": [
+    "bNYM",
+    "NYM"
+  ],
+  "SNES_MARIO_CIRCUIT_3": [
+    "bMC3",
+    "MC3"
+  ],
+  "N64_KALIMARI_DESERT": [
+    "bKD",
+    "KD"
+  ],
+  "DS_WALUIGI_PINBALL": [
+    "bWP"
+  ],
+  "TOUR_SYDNEY_SPRINT": [
+    "bSS",
+    "SS"
+  ],
+  "GBA_SNOW_LAND": [
+    "bSL"
+  ],
+  "WII_MUSHROOM_GORGE": [
+    "bMG",
+    "MH"
+  ],
+  "SKY_HIGH_SUNDAE": [
+    "bSHS",
+    "SHS"
   ]
 }

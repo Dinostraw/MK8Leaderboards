@@ -5,10 +5,10 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
+from mk8boards.common import MK8Cups, MK8Tracks
 from mk8boards.mk8 import timesheet as ts
-from mk8boards.mk8.mk8 import MK8Cups, abbr_aliases, MK8Tracks, MK8Client
+from mk8boards.mk8.boards_client import MK8Client
 from mk8boards.mk8.track_stats import get_stats, format_all_stats, stats_to_labeled_dict
-from mk8boards.str_mappings import standardize_abbr
 
 logging.basicConfig(level=logging.INFO)
 
@@ -100,17 +100,19 @@ async def stats(ctx, *args):
         await ctx.reply(embed=embed)
         return
 
-    abbr = standardize_abbr(args[0])
-    if abbr in abbr_aliases:
-        track = abbr_aliases[abbr]
+    abbr = args[0]
+    try:
+        track = MK8Tracks(abbr)
+    except KeyError:
+        embed.title = f"The abbreviation {abbr} is not a known track abbreviation"
+        embed.description = "Please try again with a more commonly used abbreviation instead"
+    else:
         embed.title = f"Stats for {track.fullname} ({track.abbr})"
         track_stats = stats_to_labeled_dict((await get_stats(mk8_client, track))[track.abbr])
         for stat, value in track_stats.items():
             embed.add_field(name=stat, value=value)
-    else:
-        embed.title = f"The abbreviation {abbr} is not a known track abbreviation"
-        embed.description = "Please try again with a more commonly used abbreviation instead"
-    await ctx.reply(embed=embed)
+    finally:
+        await ctx.reply(embed=embed)
 
 
 @bot.command(aliases=["ts"], description="Gets the timesheet for the player with the given NNID")
@@ -136,7 +138,7 @@ async def timesheet(ctx, nnid):
 
         embed.set_footer(text="*Note that worldwide positions may be inaccurate due to hacked times and alts.")
 
-    except KeyError as e:
+    except (KeyError, RuntimeError) as e:
         embed.title = f"Failed to fetch the timesheet for {nnid}:"
         if e.__class__ is KeyError:
             embed.description = f"The NNID \"{nnid}\" does not exist."

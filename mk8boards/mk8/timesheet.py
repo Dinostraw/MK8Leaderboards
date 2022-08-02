@@ -8,8 +8,9 @@ from nintendo.nex.ranking import RankingClient, RankingMode, RankingOrderCalc
 from nintendo.nex.ranking import RankingOrderParam, RankingRankData
 from nintendo.nnas import NNASError
 
+from mk8boards.common import MK8Tracks
+from mk8boards.mk8.boards_client import MK8Client
 from mk8boards.mk8.extract_info import MK8PlayerInfo
-from mk8boards.mk8.mk8 import MK8Tracks, MK8Client
 
 
 @dataclass(frozen=True)

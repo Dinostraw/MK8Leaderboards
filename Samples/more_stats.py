@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.ticker import FuncFormatter
 
-from mk8boards.mk8.mk8 import MK8Tracks as Tracks
+from mk8boards.common import MK8Tracks as Tracks
 from mk8boards.mk8.timesheet import format_time
 
 # Modify in between here =================================================================================

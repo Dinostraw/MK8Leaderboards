@@ -4,7 +4,8 @@ from typing import Dict, List, Union
 from nintendo.nex import backend
 from nintendo.nex.ranking import RankingClient, RankingOrderCalc, RankingOrderParam, RankingStatFlags
 
-from mk8boards.mk8.mk8 import MK8Tracks, MK8Client
+from mk8boards.common import MK8Tracks
+from mk8boards.mk8.boards_client import MK8Client
 from mk8boards.mk8.timesheet import format_time
 
 

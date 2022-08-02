@@ -4,7 +4,8 @@ import os
 import anyio
 from dotenv import load_dotenv
 
-from mk8boards.mk8.mk8 import MK8Client, MK8Tracks
+from mk8boards.common import MK8Tracks
+from mk8boards.mk8.boards_client import MK8Client
 from mk8boards.mk8.track_stats import format_all_stats, get_stats
 
 logging.basicConfig(level=logging.INFO)

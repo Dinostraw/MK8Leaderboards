@@ -7,8 +7,9 @@ from dotenv import load_dotenv
 from nintendo.nex import backend, datastore
 from nintendo.nex.ranking import RankingClient, RankingMode, RankingOrderCalc, RankingOrderParam
 
+from mk8boards.common import MK8Tracks as Tracks
+from mk8boards.mk8.boards_client import MK8Client
 from mk8boards.mk8.extract_info import MK8GhostInfo
-from mk8boards.mk8.mk8 import MK8Client, MK8Tracks as Tracks
 
 logging.basicConfig(level=logging.INFO)
 
@@ -30,8 +31,8 @@ REGION_NAME = os.getenv("REGION_NAME")
 LANGUAGE = os.getenv("LANGUAGE")
 
 # Track IDs: https://github.com/Kinnay/NintendoClients/wiki/Mario-Kart-8-Track-IDs
-TRACK_ID = Tracks.N64_ROYAL_RACEWAY.id_
-NNID = "xXLaFerrariXx"  # NNID of targeted player
+TRACK_ID = Tracks.CLOUDTOP_CRUISE.id_
+NNID = "Dinostraw"  # NNID of targeted player
 
 
 async def get_common_data(client: MK8Client, nnid: str) -> bytes:

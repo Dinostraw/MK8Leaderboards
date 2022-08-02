@@ -9,7 +9,7 @@ from nintendo.nex.ranking import RankingClient, RankingMode, RankingOrderCalc
 from nintendo.nex.ranking import RankingOrderParam, RankingResult
 from nintendo.nnas import NNASClient
 
-from mk8boards.mk8.mk8 import MK8Client
+from mk8boards.mk8.boards_client import MK8Client
 
 _AltInfo = namedtuple("_AltInfo", ["main", "alts"])
 with open(os.path.join(os.path.dirname(__file__), "filters/alts.json"), 'r') as f:

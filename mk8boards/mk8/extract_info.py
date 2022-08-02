@@ -2,8 +2,8 @@ import re
 from glob import glob
 from typing import Literal, NamedTuple
 
+from mk8boards.common import MK8Tracks as Tracks, BoosterTracks
 from mk8boards.mk8.countries import CountryMap
-from mk8boards.mk8.mk8 import MK8Tracks as Tracks
 
 
 class InvalidGhostFormat(Exception):

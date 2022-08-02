@@ -2,7 +2,7 @@ import re
 from glob import glob
 from typing import Literal, NamedTuple
 
-from mk8boards.common import MK8Tracks as Tracks, BoosterTracks
+from mk8boards import common
 from mk8boards.mk8.countries import CountryMap
 
 
@@ -41,28 +41,6 @@ class MK8PlayerInfo:
 
 
 class MK8GhostInfo:
-    driver_dict = {0x00: "Mario", 0x01: "Luigi", 0x04: "Yoshi", 0x07: "Koopa Troopa",
-                   0x08: "Bowser", 0x0A: "Wario", 0x0F: "Lakitu", 0x1C: "Morton",
-                   0x1D: "Mii", 0x1F: "Link", 0x20: "Male Villager", 0x23: "Dry Bowser"}
-
-    body_dict = {0x00: "Standard Kart", 0x01: "Pipe Frame", 0x02: "Mach 8", 0x03: "Steel Driver",
-                 0x04: "Cat Cruiser", 0x05: "Circuit Special", 0x06: "Tri-Speeder", 0x07: "Badwagon",
-                 0x08: "Prancer", 0x09: "Biddybuggy", 0x0A: "Landship", 0x0B: "Sneeker",
-                 0x0C: "Sports Coupe", 0x0D: "Gold Standard", 0x13: "Varmint", 0x1D: "Blue Falcon",
-                 0x1E: "Tanooki Kart", 0x20: "Master Cycle", 0x23: "Streetle"}
-
-    tire_dict = {0x00: "Standard", 0x01: "Monster", 0x02: "Roller", 0x03: "Slim",
-                 0x04: "Slick", 0x05: "Metal", 0x06: "Button", 0x07: "Off Road",
-                 0x08: "Sponge", 0x09: "Wood", 0x0A: "Cushion", 0x0B: "Blue Standard",
-                 0x0C: "Hot Monster", 0x0D: "Azure Roller", 0x0E: "Crimson Slim", 0x0F: "Cyber Slick",
-                 0x10: "Retro Off Road", 0x11: "Gold Tires", 0x12: "GLA Tires", 0x13: "Triforce Tires",
-                 0x14: "Leaf Tires"}
-
-    glider_dict = {0x00: "Super Glider", 0x01: "Cloud Glider", 0x02: "Wario Wing", 0x03: "Waddle Wing",
-                   0x04: "Peach Parasol", 0x05: "Parachute", 0x06: "Parafoil", 0x07: "Flower Glider",
-                   0x08: "Bowser Kite", 0x09: "Plane Glider", 0x0A: "MKTV Parafoil", 0x0B: "Gold Glider",
-                   0x0C: "Hylian Kite", 0x0D: "Paper Glider"}
-
     def generate_filename(self, prefix: Literal['dg', 'gs', 'sg'] = 'dg') -> str:
         # Based on the information gathered in this forum post:
         # https://gbatemp.net/threads/post-your-wiiu-cheat-codes-here.395443/post-8640417
@@ -74,16 +52,16 @@ class MK8GhostInfo:
 
         if prefix == 'dg':
             # The 00 can be anything from 00 to 0f inclusive
-            header = f"{prefix}00{self.track:02x}"
+            header = f"{prefix}00{self.track.id_:02x}"
         else:
-            header = f"{prefix}{self.track-0x10:02x}{self.track:02x}"
+            header = f"{prefix}{self.track.id_-0x10:02x}{self.track.id_:02x}"
 
-        character = f"{self.character:02x}{self.variant:02x}{self.mii_weight:02x}"
-        combo = f"{character}{self.vehicle_body:02x}{self.tire:02x}{self.glider:02x}"
+        character = f"{self.character.value:02x}{self.variant:02x}{self.mii_weight:02x}"
+        combo = f"{character}{self.vehicle_body.value:02x}{self.tire.value:02x}{self.glider.value:02x}"
 
         endtime = f'{self.total_time.mins:01x}{self.total_time.secs:02x}{self.total_time.msecs:03x}'
 
-        if self.track == Tracks.GCN_BABY_PARK.id_:
+        if self.track == common.MK8Tracks.GCN_BABY_PARK:
             splits_pt1 = ''.join([f'{t.mins:01x}{t.secs:02x}{t.msecs:03x}' for t in self.lap_times[:5]])
             splits_pt2 = ''.join([f'{t.mins:01x}{t.secs:02x}{t.msecs:03x}' for t in self.lap_times[5:]])
         else:
@@ -109,7 +87,7 @@ class MK8GhostInfo:
             )
 
         # Basic Info
-        self.track = data[0x17F]
+        self.track = common.MK8Tracks(data[0x17F])
         self.motion = motion  # Still being investigated if this exists internally
         self.mii_name_bytes = data[0x304:0x318]
         # Force big endian; strip everything after the null character if one occurs
@@ -119,7 +97,7 @@ class MK8GhostInfo:
         self.year = int.from_bytes(data[0x0E:0x10], "big")
         self.month = data[0x13]
         self.day = data[0x17]
-        self.weekday = data[0x1B]
+        self.weekday = common.Weekdays(data[0x1B])
         self.hour = data[0x1F]
         self.min = data[0x23]
         self.sec = data[0x27]
@@ -136,25 +114,43 @@ class MK8GhostInfo:
         self.subregion = subregion_data.names[lang]
 
         # Combo Info
-        self.character = data[0x3B]
+        self.character = common.Characters(data[0x3B])
         self.variant = data[0x3C]
         self.mii_weight = data[0x3D]
-        self.vehicle_body = data[0x2F]
-        self.tire = data[0x33]
-        self.glider = data[0x37]
+        self.vehicle_body = common.MK8VehicleBodies(data[0x2F])
+        self.tire = common.Tires(data[0x33])
+        self.glider = common.Gliders(data[0x37])
 
         # Total Time and Splits
         self.total_time = MK8TimeTuple(data[0x36D], data[0x36E], int.from_bytes(data[0x370:0x372], "big"))
 
         lap_offsets = [0x331, 0x33D, 0x349, 0x355, 0x361, 0x385, 0x391]
-        if self.track != Tracks.GCN_BABY_PARK.id_:
+        if self.track != common.MK8Tracks.GCN_BABY_PARK:
             lap_offsets = lap_offsets[:3]
 
         self.lap_times = [MK8TimeTuple(data[x], data[x+1], int.from_bytes(data[x+3:x+5], "big"))
                           for x in lap_offsets]
 
     def __str__(self):
-        return ''.join(f"{k}: {v}\n" for k, v in self.__dict__.items())
+        return (
+            f"Track: {self.track.fullname}\n"
+            f"Total Time: {self.total_time}\n"
+            f"Lap times: {' | '.join(str(time) for time in self.lap_times)}\n"
+            f"Motion Controls: {self.motion}\n"
+            f"\n"
+            f"Name: {self.mii_name}\n"
+            f"Location: {self.subregion}, {self.country}\n"
+            f"Timestamp: {str(self.weekday.name).title()}, "
+            f"{self.year}-{self.month:02d}-{self.day:02d}, "
+            f"{self.hour:02d}:{self.min:02d}:{self.sec:02d}\n"
+            f"\n"
+            f"Character: {str(self.character.name).replace('_', ' ').title()}\n"
+            f"Variant: {self.variant}\n"
+            f"Mii Weight Class: {self.mii_weight}\n"
+            f"Combo: {str(self.vehicle_body.name).replace('_', ' ').title()}, "
+            f"{str(self.tire.name).replace('_', ' ').title()}, "
+            f"{str(self.glider.name).replace('_', ' ').title()}"
+        )
 
 
 class MK8DXGhostInfo:
@@ -168,24 +164,26 @@ class MK8DXGhostInfo:
         if not staff_ghost:
             if prefix == 'dg':
                 order = 0  # Can be anything from 0 to 31 inclusive
+            elif self.track.id_ <= common.MK8Tracks.BIG_BLUE.id_:
+                order = self.track.id_ - 0x10
             else:
-                order = self.track - 0x10 if self.track <= Tracks.BIG_BLUE.id_ else self.track - 0x1B
+                order = self.track.id_ - 0x1B
             return f"{prefix}{order:02d}.dat"
 
         # Staff ghosts have a much more complicated filename format
         # For the 48 base-game tracks (Big Blue has the highest ID of these)
-        if self.track <= Tracks.BIG_BLUE.id_:
-            header = f"{prefix}{self.track-0x10:02x}{self.track:02x}"
+        if self.track.id_ <= common.MK8Tracks.BIG_BLUE.id_:
+            header = f"{prefix}{self.track.id_-0x10:02x}{self.track.id_:02x}"
         # For the DLC tracks
         else:
-            header = f"{prefix}{self.track-0x1B:02x}{self.track:02x}"
+            header = f"{prefix}{self.track.id_-0x1B:02x}{self.track.id_:02x}"
 
-        character = f"{self.character:02x}{self.variant:02x}{self.mii_weight:02x}"
-        combo = f"{character}{self.vehicle_body:02x}{self.tire:02x}{self.glider:02x}"
+        character = f"{self.character.value:02x}{self.variant:02x}{self.mii_weight:02x}"
+        combo = f"{character}{self.vehicle_body.value:02x}{self.tire.value:02x}{self.glider.value:02x}"
 
         endtime = f'{self.total_time.mins:01x}{self.total_time.secs:02x}{self.total_time.msecs:03x}'
 
-        if self.track == Tracks.GCN_BABY_PARK.id_:
+        if self.track == common.MK8Tracks.GCN_BABY_PARK:
             splits = ''.join([f'{t.mins:01x}{t.secs:02x}{t.msecs:03x}' for t in self.lap_times])
         else:
             filler = "000000" * 4  # Four filler splits, each represents a time of 0:00.000
@@ -210,7 +208,10 @@ class MK8DXGhostInfo:
             )
 
         # Basic Info
-        self.track = data[0x1CC]
+        if data[0x1CC] <= common.MK8Tracks.BIG_BLUE.id_:
+            self.track = common.MK8Tracks(data[0x1CC])
+        else:
+            self.track = common.BoosterTracks(data[0x1CC])
         mode = data[0x3C]
         if mode == 2:
             self.mode = "150cc"
@@ -227,7 +228,7 @@ class MK8DXGhostInfo:
         self.year = int.from_bytes(data[0x0C:0x10], "little")
         self.month = data[0x10]
         self.day = data[0x14]
-        self.weekday = data[0x18]
+        self.weekday = common.Weekdays(data[0x18])
         self.hour = data[0x1C]
         self.min = data[0x20]
         self.sec = data[0x24]
@@ -236,29 +237,47 @@ class MK8DXGhostInfo:
         self.country_id = int.from_bytes(data[0x2A0:0x2A2], "little")
 
         # Combo Info
-        self.character = data[0x68]
+        self.character = common.Characters(data[0x68])
         self.variant = data[0x6C]
         self.mii_weight = data[0x6D]
-        self.vehicle_body = data[0x5C]
-        self.tire = data[0x60]
-        self.glider = data[0x64]
+        self.vehicle_body = common.MK8DXVehicleBodies(data[0x5C])
+        self.tire = common.Tires(data[0x60])
+        self.glider = common.Gliders(data[0x64])
 
         # Total Time and Splits
         self.total_time = MK8TimeTuple(data[0x384], data[0x385], int.from_bytes(data[0x386:0x388], "little"))
 
         lap_offsets = [0x334, 0x33C, 0x344, 0x34C, 0x354, 0x35C, 0x364]
-        if self.track != Tracks.GCN_BABY_PARK.id_:
+        if self.track != common.MK8Tracks.GCN_BABY_PARK:
             lap_offsets = lap_offsets[:3]
 
         self.lap_times = [MK8TimeTuple(data[x], data[x+1], int.from_bytes(data[x+2:x+4], "little"))
                           for x in lap_offsets]
 
     def __str__(self):
-        return ''.join(f"{k}: {v}\n" for k, v in self.__dict__.items())
+        return (
+            f"Track: {self.track.fullname}\n"
+            f"Mode: {self.mode}\n"
+            f"Total Time: {self.total_time}\n"
+            f"Lap times: {' | '.join(str(time) for time in self.lap_times)}\n"
+            f"Motion Controls: {self.motion}\n"
+            f"\n"
+            f"Name: {self.player_name}\n"
+            f"Timestamp: {str(self.weekday.name).title()}, "
+            f"{self.year}-{self.month:02d}-{self.day:02d}, "
+            f"{self.hour:02d}:{self.min:02d}:{self.sec:02d}\n"
+            f"\n"
+            f"Character: {str(self.character.name).replace('_', ' ').title()}\n"
+            f"Variant: {self.variant}\n"
+            f"Mii Weight Class: {self.mii_weight}\n"
+            f"Combo: {str(self.vehicle_body.name).replace('_', ' ').title()}, "
+            f"{str(self.tire.name).replace('_', ' ').title()}, "
+            f"{str(self.glider.name).replace('_', ' ').title()}"
+        )
 
 
 def main():
-    files = glob("../Output/Ghosts/*.dat")  # Ghost file(s)
+    files = glob("../../Output/Ghosts/*.dat")  # Ghost file(s)
     for file in files:
         with open(file, 'rb') as f:
             data = f.read()
@@ -268,7 +287,7 @@ def main():
         info = MK8GhostInfo(data, motion=filename[96:98] != '00')
         print("Original:  " + filename)
         print("Generated: " + info.generate_filename(filename[:2]))
-        print(info, end="\n\n")
+        print(info, end="\n\n==================\n\n")
 
 
 if __name__ == "__main__":

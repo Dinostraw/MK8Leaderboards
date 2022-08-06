@@ -69,11 +69,11 @@ class MK8GhostInfo:
             splits_pt1 = (''.join(f"{t.mins:01x}{t.secs:02x}{t.msecs:03x}" for t in self.lap_times[:3])
                           + splits_pt2)  # Since most tracks have just 3 laps, append filler
 
-        mii = ''.join(f"{b:02x}" for b in self.player_name_bytes)
+        name = ''.join(f"{b:02x}" for b in self.player_name_bytes)
         country = f"{self.country_id:02x}"
         motion = f"{int(self.motion):02x}0000"
 
-        return header + combo + endtime + splits_pt1 + mii + country + motion + splits_pt2 + ".dat"
+        return header + combo + endtime + splits_pt1 + name + country + motion + splits_pt2 + ".dat"
 
     def __init__(self, data: bytes, motion=False, lang: str = "en"):
         # Ghost data in Mario Kart 8 for the most part is formatted as Big-Endian
@@ -193,11 +193,11 @@ class MK8DXGhostInfo:
 
         pnb = self.player_name_bytes
         # Convert each UTF-16 character's byte order from little-endian to big-endian and join them
-        player = ''.join(f"{pnb[x+1]:02x}{pnb[x]:02x}" for x in range(0, len(pnb), 2))
+        name = ''.join(f"{pnb[x+1]:02x}{pnb[x]:02x}" for x in range(0, len(pnb), 2))
         country = f"{self.country_id:04x}"
         motion = f"{int(self.motion):02x}0000"
 
-        return header + combo + endtime + splits + player + country + motion + ".dat"
+        return header + combo + endtime + splits + name + country + motion + ".dat"
 
     def __init__(self, data: bytes, motion=False, lang: str = "en"):
         # Ghost data in Mario Kart 8 Deluxe follows a Little-Endian format

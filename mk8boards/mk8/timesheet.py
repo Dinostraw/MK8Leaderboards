@@ -120,7 +120,7 @@ async def get_timesheet(client: MK8Client, nnid: str) -> Timesheet:
                 mii_name = ""
                 for time in timesheet.values():
                     if time is not None:
-                        mii_name = MK8PlayerInfo(time.common_data).mii_name
+                        mii_name = MK8PlayerInfo(time.common_data).mii.mii_name
                         break
 
             return Timesheet(pid, nnid, mii_name, timesheet)
@@ -159,7 +159,7 @@ async def get_timesheets(client: MK8Client, nnids: List[str]) -> List[Timesheet]
                     mii_name = ""
                     for time in records.values():
                         if time is not None:
-                            mii_name = MK8PlayerInfo(time.common_data).mii_name
+                            mii_name = MK8PlayerInfo(time.common_data).mii.mii_name
                             break
                 timesheets.append(Timesheet(pid, nnid, mii_name, records))
 

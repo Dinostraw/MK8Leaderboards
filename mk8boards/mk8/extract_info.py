@@ -3,6 +3,7 @@ from glob import glob
 from typing import Literal, NamedTuple
 
 from mk8boards import common
+from mk8boards.miis import MiiDataSwitch, MiiDataWiiU
 from mk8boards.mk8.countries import CountryMap
 
 
@@ -33,8 +34,7 @@ class MK8PlayerInfo:
         self.subregion = subregion_data.names[lang]
 
         # User Mii Info
-        self.mii_name = common_data[0x2E:0x42].decode("utf_16").split("\0", 1)[0]
-        self.mac_address = ''.join(f"{int(x):02X}" for x in common_data[0x24:0x2A])
+        self.mii = MiiDataWiiU.parse(common_data[0x14:0x74])
 
     def __str__(self):
         return ''.join(f"{k}: {v}\n" for k, v in self.__dict__.items())
@@ -69,7 +69,7 @@ class MK8GhostInfo:
             splits_pt1 = (''.join(f"{t.mins:01x}{t.secs:02x}{t.msecs:03x}" for t in self.lap_times[:3])
                           + splits_pt2)  # Since most tracks have just 3 laps, append filler
 
-        mii = ''.join(f"{b:02x}" for b in self.mii_name_bytes)
+        mii = ''.join(f"{b:02x}" for b in self.player_name_bytes)
         country = f"{self.country_id:02x}"
         motion = f"{int(self.motion):02x}0000"
 
@@ -89,9 +89,10 @@ class MK8GhostInfo:
         # Basic Info
         self.track = common.MK8Tracks(data[0x17F])
         self.motion = motion  # Still being investigated if this exists internally
-        self.mii_name_bytes = data[0x304:0x318]
+        self.player_name_bytes = data[0x304:0x318]
         # Force big endian; strip everything after the null character if one occurs
-        self.mii_name = self.mii_name_bytes.decode("utf_16_be").split("\0", 1)[0]
+        self.player_name = self.player_name_bytes.decode("utf_16_be").split("\0", 1)[0]
+        self.mii = MiiDataWiiU.parse(data[0x244:0x2A4])
 
         # Timestamp
         self.year = int.from_bytes(data[0x0E:0x10], "big")
@@ -138,7 +139,7 @@ class MK8GhostInfo:
             f"Lap times: {' | '.join(str(time) for time in self.lap_times)}\n"
             f"Motion Controls: {self.motion}\n"
             f"\n"
-            f"Name: {self.mii_name}\n"
+            f"Name: {self.player_name}\n"
             f"Location: {self.subregion}, {self.country}\n"
             f"Timestamp: {str(self.weekday.name).title()}, "
             f"{self.year}-{self.month:02d}-{self.day:02d}, "
@@ -223,6 +224,7 @@ class MK8DXGhostInfo:
         self.player_name_bytes = data[0x254:0x268]
         # Strip everything after the null character if one occurs
         self.player_name = self.player_name_bytes.decode("utf_16").split("\0", 1)[0]
+        self.mii = MiiDataSwitch.parse(data[0x244:0x29C])
 
         # Timestamp
         self.year = int.from_bytes(data[0x0C:0x10], "little")
@@ -263,6 +265,7 @@ class MK8DXGhostInfo:
             f"Motion Controls: {self.motion}\n"
             f"\n"
             f"Name: {self.player_name}\n"
+            f"Country: {self.country_id:04X}\n"
             f"Timestamp: {str(self.weekday.name).title()}, "
             f"{self.year}-{self.month:02d}-{self.day:02d}, "
             f"{self.hour:02d}:{self.min:02d}:{self.sec:02d}\n"
@@ -277,17 +280,20 @@ class MK8DXGhostInfo:
 
 
 def main():
-    files = glob("../../Output/Ghosts/*.dat")  # Ghost file(s)
+    files = glob("../../Output/Ghosts (Deluxe)/*.dat")  # Ghost file(s)
     for file in files:
         with open(file, 'rb') as f:
             data = f.read()
         filename = re.split(r'[/\\]', file)[-1]
-        # if filename[:2] not in ('sg', 'fg', 'dg'):
-        #     continue
-        info = MK8GhostInfo(data, motion=filename[96:98] != '00')
+        if filename[:2] not in ('sg', 'fg', 'dg'):
+            continue
+        info = MK8DXGhostInfo(data, motion=filename[96:98] != '00')
         print("Original:  " + filename)
         print("Generated: " + info.generate_filename(filename[:2]))
-        print(info, end="\n\n==================\n\n")
+        print(f"{info}\nhttps://studio.mii.nintendo.com/miis/image.png?data="
+              f"{''.join(f'{x:02x}' for x in info.mii.to_studio_api())}"
+              f"&width=512&type=face",
+              end="\n\n==================\n\n")
 
 
 if __name__ == "__main__":

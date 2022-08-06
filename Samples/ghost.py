@@ -85,8 +85,8 @@ async def main():
           f"&width=512&type=face", end="\n\n")
     filename = ghost_info.generate_filename()
     print(f"Filename:\n{filename}")
-    # with open("../Output/Ghosts/" + filename, "wb") as f:
-    #     f.write(ghost_data)
+    with open("../Output/Ghosts/" + filename, "wb") as f:
+        f.write(ghost_data)
 
     common_data = await get_common_data(mk8_client, NNID)
     player_info = MK8PlayerInfo(common_data)

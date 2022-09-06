@@ -1,4 +1,5 @@
 import re
+from binascii import crc32
 from glob import glob
 from typing import Literal, NamedTuple
 
@@ -75,68 +76,85 @@ class MK8GhostInfo:
 
         return header + combo + endtime + splits_pt1 + name + country + motion + splits_pt2 + ".dat"
 
+    def generate_header(self, version: str = "4.1.0") -> bytes:
+        if version == "4.1.0":
+            ver = b'\x04\x01\x00\x04'
+        else:
+            ver = b'\x00\x00\x00\x00'
+
+        size = int.to_bytes(len(self.data) + 0x48, 4, "big")
+        crc = crc32(self.data).to_bytes(4, "big")
+
+        return b'CTG0' + ver + size + b'\0' * 0x2C + crc + b'\0' * 0x0C
+
     def __init__(self, data: bytes, motion=False, lang: str = "en"):
         # Ghost data in Mario Kart 8 for the most part is formatted as Big-Endian
         # The embedded Mii data seems to be formatted as Little-Endian, however
-        data = bytes(data)
-        data = data[0x48:] if data[0x0:0x4].decode('utf8') == "CTG0" else data
+        if data[0x0:0x4].decode('utf8') == "CTG0":
+            self.data = data[0x48:]
+            self.header = data[:0x48]
+        else:
+            self.data = data
+            self.header = self.generate_header()
 
-        if data[0x0:0x6] != b'\x00\x00\x04\x00\x03\xa0':
+        if self.data[0x0:0x6] != b'\x00\x00\x04\x00\x03\xa0':
             raise InvalidGhostFormat(
                 "Ghost not in the proper format: likely not a Mario Kart 8 ghost"
             )
 
         # Basic Info
-        self.track = common.MK8Tracks(data[0x17F])
+        self.track = common.MK8Tracks(self.data[0x17F])
         self.motion = motion  # Still being investigated if this exists internally
-        self.player_name_bytes = data[0x304:0x318]
+        self.player_name_bytes = self.data[0x304:0x318]
         # Force big endian; strip everything after the null character if one occurs
         self.player_name = self.player_name_bytes.decode("utf_16_be").split("\0", 1)[0]
-        self.mii = MiiDataWiiU.parse(data[0x244:0x2A4])
+        self.mii = MiiDataWiiU.parse(self.data[0x244:0x2A4])
 
         # Timestamp
-        self.year = int.from_bytes(data[0x0E:0x10], "big")
-        self.month = data[0x13]
-        self.day = data[0x17]
-        self.weekday = common.Weekdays(data[0x1B])
-        self.hour = data[0x1F]
-        self.min = data[0x23]
-        self.sec = data[0x27]
+        self.year = int.from_bytes(self.data[0x0E:0x10], "big")
+        self.month = self.data[0x13]
+        self.day = self.data[0x17]
+        self.weekday = common.Weekdays(self.data[0x1B])
+        self.hour = self.data[0x1F]
+        self.min = self.data[0x23]
+        self.sec = self.data[0x27]
 
         # Location: Country Info
-        self.country_id = data[0x2A4]
+        self.country_id = self.data[0x2A4]
         country_data = CountryMap.get_country(self.country_id)
         self.country_code = country_data.alpha3
         self.country = country_data.names[lang]
 
         # Location: Region Info
-        self.subregion_id = data[0x2A5]
+        self.subregion_id = self.data[0x2A5]
         subregion_data = CountryMap.get_subregion(self.country_id, self.subregion_id)
         self.subregion = subregion_data.names[lang]
 
         # Combo Info
-        self.character = common.Characters(data[0x3B])
-        self.variant = data[0x3C]
-        self.mii_weight = data[0x3D]
-        self.vehicle_body = common.MK8VehicleBodies(data[0x2F])
-        self.tire = common.Tires(data[0x33])
-        self.glider = common.Gliders(data[0x37])
+        self.character = common.Characters(self.data[0x3B])
+        self.variant = self.data[0x3C]
+        self.mii_weight = self.data[0x3D]
+        self.vehicle_body = common.MK8VehicleBodies(self.data[0x2F])
+        self.tire = common.Tires(self.data[0x33])
+        self.glider = common.Gliders(self.data[0x37])
 
         # Total Time and Splits
-        self.total_time = MK8TimeTuple(data[0x36D], data[0x36E], int.from_bytes(data[0x370:0x372], "big"))
+        self.total_time = MK8TimeTuple(
+            self.data[0x36D], self.data[0x36E], int.from_bytes(self.data[0x370:0x372], "big")
+        )
 
         lap_offsets = [0x331, 0x33D, 0x349, 0x355, 0x361, 0x385, 0x391]
         if self.track != common.MK8Tracks.GCN_BABY_PARK:
             lap_offsets = lap_offsets[:3]
 
-        self.lap_times = [MK8TimeTuple(data[x], data[x+1], int.from_bytes(data[x+3:x+5], "big"))
+        self.lap_times = [MK8TimeTuple(self.data[x], self.data[x+1], int.from_bytes(self.data[x+3:x+5], "big"))
                           for x in lap_offsets]
 
     def __str__(self):
         return (
             f"Track: {self.track.fullname}\n"
             f"Total Time: {self.total_time}\n"
-            f"Lap times: {' | '.join(str(time) for time in self.lap_times)}\n"
+            f"Lap Times: {' | '.join(str(time) for time in self.lap_times)}\n"
             f"Motion Controls: {self.motion}\n"
             f"\n"
             f"Name: {self.player_name}\n"
@@ -199,21 +217,33 @@ class MK8DXGhostInfo:
 
         return header + combo + endtime + splits + name + country + motion + ".dat"
 
+    def generate_header(self) -> bytes:
+        ver = b'\x00\x00\x00\x00'
+        size = int.to_bytes(len(self.data) + 0x48, 4, "big")
+        crc = crc32(self.data).to_bytes(4, "big")
+
+        return b'CTG0' + ver + size + b'\0' * 0x2C + crc + b'\0' * 0x0C
+
     def __init__(self, data: bytes, motion=False, lang: str = "en"):
         # Ghost data in Mario Kart 8 Deluxe follows a Little-Endian format
-        data = bytes(data)
-        data = data[0x48:] if data[0x0:0x4].decode('utf8') == "0GTC" else data
-        if data[0x0:0x8] != b'\x00\x0C\x00\x00\x00\x00\x20\x00':
+        if data[0x0:0x4].decode('utf8') == "0GTC":
+            self.data = data[0x48:]
+            self.header = data[:0x48]
+        else:
+            self.data = data
+            self.header = self.generate_header()
+
+        if self.data[0x0:0x8] != b'\x00\x0C\x00\x00\x00\x00\x20\x00':
             raise InvalidGhostFormat(
                 "Ghost not in the proper format: likely not a Mario Kart 8 Deluxe ghost"
             )
 
         # Basic Info
-        if data[0x1CC] <= common.MK8Tracks.BIG_BLUE.id_:
-            self.track = common.MK8Tracks(data[0x1CC])
+        if self.data[0x1CC] <= common.MK8Tracks.BIG_BLUE.id_:
+            self.track = common.MK8Tracks(self.data[0x1CC])
         else:
-            self.track = common.BoosterTracks(data[0x1CC])
-        mode = data[0x3C]
+            self.track = common.BoosterTracks(self.data[0x1CC])
+        mode = self.data[0x3C]
         if mode == 2:
             self.mode = "150cc"
         elif mode == 3:
@@ -221,39 +251,41 @@ class MK8DXGhostInfo:
         else:
             self.mode = "???"
         self.motion = motion  # Still being investigated if this exists internally
-        self.player_name_bytes = data[0x254:0x268]
+        self.player_name_bytes = self.data[0x254:0x268]
         # Strip everything after the null character if one occurs
         self.player_name = self.player_name_bytes.decode("utf_16").split("\0", 1)[0]
-        self.mii = MiiDataSwitch.parse(data[0x244:0x29C])
+        self.mii = MiiDataSwitch.parse(self.data[0x244:0x29C])
 
         # Timestamp
-        self.year = int.from_bytes(data[0x0C:0x10], "little")
-        self.month = data[0x10]
-        self.day = data[0x14]
-        self.weekday = common.Weekdays(data[0x18])
-        self.hour = data[0x1C]
-        self.min = data[0x20]
-        self.sec = data[0x24]
+        self.year = int.from_bytes(self.data[0x0C:0x10], "little")
+        self.month = self.data[0x10]
+        self.day = self.data[0x14]
+        self.weekday = common.Weekdays(self.data[0x18])
+        self.hour = self.data[0x1C]
+        self.min = self.data[0x20]
+        self.sec = self.data[0x24]
 
         # Country Info
-        self.country_id = int.from_bytes(data[0x2A0:0x2A2], "little")
+        self.country_id = int.from_bytes(self.data[0x2A0:0x2A2], "little")
 
         # Combo Info
-        self.character = common.Characters(data[0x68])
-        self.variant = data[0x6C]
-        self.mii_weight = data[0x6D]
-        self.vehicle_body = common.MK8DXVehicleBodies(data[0x5C])
-        self.tire = common.Tires(data[0x60])
-        self.glider = common.Gliders(data[0x64])
+        self.character = common.Characters(self.data[0x68])
+        self.variant = self.data[0x6C]
+        self.mii_weight = self.data[0x6D]
+        self.vehicle_body = common.MK8DXVehicleBodies(self.data[0x5C])
+        self.tire = common.Tires(self.data[0x60])
+        self.glider = common.Gliders(self.data[0x64])
 
         # Total Time and Splits
-        self.total_time = MK8TimeTuple(data[0x384], data[0x385], int.from_bytes(data[0x386:0x388], "little"))
+        self.total_time = MK8TimeTuple(
+            self.data[0x384], self.data[0x385], int.from_bytes(self.data[0x386:0x388], "little")
+        )
 
         lap_offsets = [0x334, 0x33C, 0x344, 0x34C, 0x354, 0x35C, 0x364]
         if self.track != common.MK8Tracks.GCN_BABY_PARK:
             lap_offsets = lap_offsets[:3]
 
-        self.lap_times = [MK8TimeTuple(data[x], data[x+1], int.from_bytes(data[x+2:x+4], "little"))
+        self.lap_times = [MK8TimeTuple(self.data[x], self.data[x+1], int.from_bytes(self.data[x+2:x+4], "little"))
                           for x in lap_offsets]
 
     def __str__(self):
@@ -261,7 +293,7 @@ class MK8DXGhostInfo:
             f"Track: {self.track.fullname}\n"
             f"Mode: {self.mode}\n"
             f"Total Time: {self.total_time}\n"
-            f"Lap times: {' | '.join(str(time) for time in self.lap_times)}\n"
+            f"Lap Times: {' | '.join(str(time) for time in self.lap_times)}\n"
             f"Motion Controls: {self.motion}\n"
             f"\n"
             f"Name: {self.player_name}\n"
@@ -280,14 +312,14 @@ class MK8DXGhostInfo:
 
 
 def main():
-    files = glob("../../Output/Ghosts (Deluxe)/*.dat")  # Ghost file(s)
+    files = glob("../../Output/Ghosts/*.dat")  # Ghost file(s)
     for file in files:
         with open(file, 'rb') as f:
             data = f.read()
         filename = re.split(r'[/\\]', file)[-1]
-        if filename[:2] not in ('sg', 'fg', 'dg'):
+        if filename[:2] not in ('sg', 'fg', 'dg', 'gs'):
             continue
-        info = MK8DXGhostInfo(data, motion=filename[96:98] != '00')
+        info = MK8GhostInfo(data, motion=filename[96:98] != '00')
         print("Original:  " + filename)
         print("Generated: " + info.generate_filename(filename[:2]))
         print(f"{info}\nhttps://studio.mii.nintendo.com/miis/image.png?data="

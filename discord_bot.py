@@ -33,6 +33,8 @@ mk8_client = MK8Client(DEVICE_ID, SERIAL_NUMBER, SYSTEM_VERSION, COUNTRY_ID, COU
                        REGION_ID, REGION_NAME, LANGUAGE, USERNAME, PASSWORD)
 
 bot = commands.Bot(command_prefix='!')
+md_escape = {ord('*'): '\\*', ord('_'): '\\_', ord('~'): '\\~',
+             ord('`'): '\\`', ord('>'): '\\>', ord('|'): '\\|'}
 
 
 @bot.event
@@ -60,7 +62,8 @@ async def matchup(ctx, nnid1, nnid2):
         m = ts.get_matchup(*(await ts.get_timesheets(mk8_client, [nnid1, nnid2])))
         p1 = m.p1_timesheet
         p2 = m.p2_timesheet
-        embed.title = f"{p1.mii_name} ({p1.nnid})   vs.   {p2.mii_name} ({p2.nnid})"
+        embed.title = (f"{p1.mii_name} ({p1.nnid})   vs.   {p2.mii_name} ({p2.nnid})"
+                       .translate(md_escape))
 
         # Bold the score for the player with the most wins
         p1_wins = f"**{m.p1_wins}**" if m.p1_wins > m.p2_wins else m.p1_wins
@@ -124,7 +127,7 @@ async def timesheet(ctx, nnid):
     try:
         player_ts = await ts.get_timesheet(mk8_client, nnid)
         ts_list = player_ts.to_string_array()
-        name = player_ts.mii_name
+        name = player_ts.mii_name.translate(md_escape)
 
         embed.title = f"Timesheet for {name} ({nnid}):" if name else f"Timesheet for {nnid}:"
         embed.description = "Shows the track abbreviation, worldwide position*, and time for each track."

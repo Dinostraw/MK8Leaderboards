@@ -6,7 +6,8 @@ Will's Files/
 Samples/dominance.py
 Samples/mii.py
 Samples/mk.txt
-*.env
-*.csv
-*.xlsx
 *.bin
+*.csv
+*.env
+*.msbt
+*.xlsx

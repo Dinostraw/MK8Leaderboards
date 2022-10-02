@@ -2,7 +2,7 @@ import asyncio
 import json
 import os
 from collections import ChainMap, namedtuple
-from typing import Union
+from typing import Iterable, Union
 
 from nintendo.nex import backend
 from nintendo.nex.ranking import RankingClient, RankingMode, RankingOrderCalc
@@ -132,9 +132,10 @@ async def get_boards(client: MK8Client, track_id: int, offset: int, count: int,
     return boards
 
 
-async def get_nnids_from_boards(nnas_client: NNASClient, boards) -> ChainMap:
-    max_amount = 500
+async def get_nnids(nnas_client: NNASClient, pids: Iterable) -> ChainMap:
+    max_amt = 500
     sem = asyncio.Semaphore(32)  # Prevent flooding servers
+    pids = list(pids)
 
     # https://stackoverflow.com/a/60004447
     async def sem_get_nnids(x):
@@ -142,8 +143,8 @@ async def get_nnids_from_boards(nnas_client: NNASClient, boards) -> ChainMap:
             return await nnas_client.get_nnids(x)
 
     tasks = [
-        asyncio.ensure_future(sem_get_nnids([data.pid for data in boards.data[x:x + max_amount]]))
-        for x in range(0, len(boards.data), max_amount)
+        asyncio.ensure_future(sem_get_nnids([pid for pid in pids[x:x + max_amt]]))
+        for x in range(0, len(pids), max_amt)
     ]
     nnids = await asyncio.gather(*tasks)
     return ChainMap(*nnids)

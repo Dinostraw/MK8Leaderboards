@@ -341,5 +341,38 @@
   "SKY_HIGH_SUNDAE": [
     "bSHS",
     "SHS"
+  ],
+  "TOUR_LONDON_LOOP": [
+    "bLL",
+    "LL"
+  ],
+  "GBA_BOO_LAKE": [
+    "bBL",
+    "BL"
+  ],
+  "MK7_ROCK_ROCK_MOUNTAIN": [
+    "bRRM",
+    "RRM",
+    "bAP",
+    "AP"
+  ],
+  "WII_MAPLE_TREEWAY": [
+    "bMT",
+    "MT"
+  ],
+  "TOUR_BERLIN_BYWAYS": [
+    "bBB"
+  ],
+  "DS_PEACH_GARDENS": [
+    "bPG",
+    "PG"
+  ],
+  "TOUR_MERRY_MOUNTAIN": [
+    "bMM"
+  ],
+  "MK7_RAINBOW_ROAD": [
+    "bRR",
+    "bRR7",
+    "RR7"
   ]
 }

@@ -3,6 +3,7 @@ import os
 
 import anyio
 from dotenv import load_dotenv
+from nintendo.nex.ranking import RankingClient
 
 from mk8boards.mk8.boards_client import MK8Client
 from mk8boards.mk8.timesheet import get_timesheet
@@ -32,12 +33,15 @@ PLAYER_NNID = "dorasa15"
 
 
 async def main():
-    mk8_client = MK8Client(DEVICE_ID, SERIAL_NUMBER, SYSTEM_VERSION, COUNTRY_ID,
-                           COUNTRY_NAME, REGION_ID, REGION_NAME, LANGUAGE,
-                           USERNAME, PASSWORD)
-    await mk8_client.login()
-    for time in (await get_timesheet(mk8_client, PLAYER_NNID)).to_string_array():
-        print(time)
+    client = MK8Client()
+    client.set_device(DEVICE_ID, SERIAL_NUMBER, SYSTEM_VERSION)
+    client.set_locale(REGION_ID, REGION_NAME, COUNTRY_ID, COUNTRY_NAME, LANGUAGE)
+
+    await client.login(USERNAME, PASSWORD)
+    async with client.backend_login() as bc:
+        rc = RankingClient(bc)
+        for time in (await get_timesheet(rc, PLAYER_NNID)).to_string_array():
+            print(time)
 
 
 if __name__ == "__main__":

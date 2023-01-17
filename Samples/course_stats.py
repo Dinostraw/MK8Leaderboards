@@ -3,8 +3,9 @@ import os
 
 import anyio
 from dotenv import load_dotenv
+from nintendo.nex.ranking import RankingClient
 
-from mk8boards.common import MK8Tracks
+from mk8boards.common import MK8Tracks as Tracks
 from mk8boards.mk8.boards_client import MK8Client
 from mk8boards.mk8.track_stats import format_all_stats, get_stats
 
@@ -29,21 +30,24 @@ PASSWORD = os.getenv("PASSWORD")
 
 
 async def main():
-    mk8_client = MK8Client(DEVICE_ID, SERIAL_NUMBER, SYSTEM_VERSION, COUNTRY_ID,
-                           COUNTRY_NAME, REGION_ID, REGION_NAME, LANGUAGE,
-                           USERNAME, PASSWORD)
-    await mk8_client.login()
-    stats = await get_stats(mk8_client, [track for track in MK8Tracks])
+    client = MK8Client()
+    client.set_device(DEVICE_ID, SERIAL_NUMBER, SYSTEM_VERSION)
+    client.set_locale(REGION_ID, REGION_NAME, COUNTRY_ID, COUNTRY_NAME, LANGUAGE)
 
-    ranks = {stat[0]: n for n, stat in enumerate(sorted(stats.items(), reverse=True, key=lambda x: x[1][0]),
-                                                 start=1)}
-    print("Rank | Track | Total Times")
-    print("=" * 26)
-    for abbr, tstats in stats.items():
-        print(f"{int(ranks[abbr]):>4d} | {abbr:>5s} | {int(tstats[0]):>11d}")
+    await client.login(USERNAME, PASSWORD)
+    async with client.backend_login() as bc:
+        rc = RankingClient(bc)
+        stats = await get_stats(rc, [track for track in Tracks])
 
-    stats = {k: v for k, v in sorted(stats.items(), key=lambda x: x[1][0])}
-    print(format_all_stats(stats))
+        ranks = {stat[0]: n for n, stat in enumerate(sorted(stats.items(), reverse=True, key=lambda x: x[1][0]),
+                                                     start=1)}
+        print("Rank | Track | Total Times")
+        print("=" * 26)
+        for abbr, tstats in stats.items():
+            print(f"{int(ranks[abbr]):>4d} | {abbr:>5s} | {int(tstats[0]):>11d}")
+
+        stats = {k: v for k, v in sorted(stats.items(), key=lambda x: x[1][0])}
+        print(format_all_stats(stats))
 
 
 if __name__ == "__main__":

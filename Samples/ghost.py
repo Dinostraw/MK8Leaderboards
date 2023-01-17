@@ -4,7 +4,7 @@ import os
 import anyio
 from anynet import http
 from dotenv import load_dotenv
-from nintendo.nex import backend, datastore
+from nintendo.nex import datastore
 from nintendo.nex.ranking import (RankingClient, RankingMode, RankingOrderCalc,
                                   RankingOrderParam, RankingRankData)
 
@@ -56,37 +56,38 @@ async def get_ghost(client: MK8Client, nnid: str) -> GhostResult:
     order_param.offset = 0
     order_param.count = 1
 
-    async with backend.connect(client.settings, client.nex_token.host, client.nex_token.port) as be:
-        async with be.login(str(client.nex_token.pid), client.nex_token.password) as be_client:
-            pid = await client.nnas.get_pid(nnid)
+    pid = await client.nnas.get_pid(nnid)
 
-            ranking_client = RankingClient(be_client)
-            rankings = await ranking_client.get_ranking(RankingMode.SELF, TRACK_ID, order_param, 0, pid)
-            rankdata = rankings.data[0]
+    async with client.backend_login() as bc:
+        rankings = await RankingClient(bc).get_ranking(RankingMode.SELF, TRACK_ID, order_param, 0, pid)
+        rankdata = rankings.data[0]
 
-            store = datastore.DataStoreClient(be_client)
+        store = datastore.DataStoreClient(bc)
 
-            get_param = datastore.DataStorePrepareGetParam()
-            get_param.persistence_target.owner_id = pid
-            get_param.persistence_target.persistence_id = TRACK_ID - 16
-            get_param.extra_data = ["WUP", str(REGION_ID), REGION_NAME, str(COUNTRY_ID), COUNTRY_NAME, ""]
+        get_param = datastore.DataStorePrepareGetParam()
+        get_param.persistence_target.owner_id = pid
+        get_param.persistence_target.persistence_id = TRACK_ID - 16
+        get_param.extra_data = ["WUP", str(REGION_ID), REGION_NAME, str(COUNTRY_ID), COUNTRY_NAME, ""]
 
-            req_info = await store.prepare_get_object(get_param)
-            headers = {header.key: header.value for header in req_info.headers}
-            response = await http.get(req_info.url, headers=headers)
-            response.raise_if_error()
+        req_info = await store.prepare_get_object(get_param)
+        headers = {header.key: header.value for header in req_info.headers}
+        response = await http.get(req_info.url, headers=headers)
+        response.raise_if_error()
 
-            return GhostResult(rankdata, response)
+        return GhostResult(rankdata, response)
 
 
 async def main():
-    mk8_client = MK8Client(DEVICE_ID, SERIAL_NUMBER, SYSTEM_VERSION, COUNTRY_ID,
-                           COUNTRY_NAME, REGION_ID, REGION_NAME, LANGUAGE,
-                           USERNAME, PASSWORD)
-    await mk8_client.login()
+    client = MK8Client()
+    client.set_device(DEVICE_ID, SERIAL_NUMBER, SYSTEM_VERSION)
+    client.set_locale(REGION_ID, REGION_NAME, COUNTRY_ID, COUNTRY_NAME, LANGUAGE)
+    await client.login(USERNAME, PASSWORD)
 
-    ghost_result = await get_ghost(mk8_client, NNID)
+    ghost_result = await get_ghost(client, NNID)
+    true_nnid = await client.nnas.get_nnid(ghost_result.pid)
     ghost_info = MK8GhostInfo(ghost_result.ghost_data, motion=ghost_result.motion)
+    player_info = MK8PlayerInfo(ghost_result.common_data)
+
     print("Ghost Data Information")
     print("======================")
     print(ghost_info, end="\n\n")
@@ -101,11 +102,7 @@ async def main():
           f"&width=512&type=face", end="\n\n")
     filename = ghost_info.generate_filename()
     print(f"Filename:\n{filename}\n\n")
-    with open("../Output/Ghosts/" + filename, "wb") as f:
-        f.write(ghost_info.header)
-        f.write(ghost_info.data)
 
-    player_info = MK8PlayerInfo(ghost_result.common_data)
     print("Common Data Information")
     print("=======================")
     print("Current Mii Name:", player_info.mii.mii_name)
@@ -116,8 +113,17 @@ async def main():
     print(f"https://studio.mii.nintendo.com/miis/image.png?data="
           f"{''.join(f'{x:02x}' for x in player_info.mii.to_studio_api())}"
           f"&width=512&type=face")
+
+    os.makedirs("../Output/Ghosts/DL/" + f"{true_nnid}", exist_ok=True)
+    with open("../Output/Ghosts/DL/" + f"{true_nnid}/{filename}", "wb") as f:
+        f.write(ghost_info.header)
+        f.write(ghost_info.data)
+
     # with open("../Output/Common Data/common_data.bin", "wb") as f:
     #     f.write(ghost_result.common_data)
+
+    # with open("../Output/mii.3dsmii", "wb") as f:
+    #     f.write(ghost_result.common_data[0x14:0x70])
 
 
 anyio.run(main)

@@ -4,12 +4,9 @@ import os
 from collections import ChainMap, namedtuple
 from typing import Iterable, Union
 
-from nintendo.nex import backend
 from nintendo.nex.ranking import RankingClient, RankingMode, RankingOrderCalc
 from nintendo.nex.ranking import RankingOrderParam, RankingResult
 from nintendo.nnas import NNASClient
-
-from mk8boards.mk8.boards_client import MK8Client
 
 _AltInfo = namedtuple("_AltInfo", ["main", "alts"])
 with open(os.path.join(os.path.dirname(__file__), "filters/alts.json"), 'r') as f:
@@ -86,55 +83,51 @@ async def get_boards_stub(ranking_client: RankingClient, track_id: int, order_pa
     return boards
 
 
-async def get_boards(client: MK8Client, track_id: int, offset: int, count: int,
+async def get_boards(ranking_client: RankingClient, track_id: int, offset: int, count: int,
                      pid: Union[int, None] = None) -> RankingResult:
-    async with backend.connect(client.settings, client.nex_token.host, client.nex_token.port) as be:
-        async with be.login(str(client.nex_token.pid), client.nex_token.password) as be_client:
-            ranking_client = RankingClient(be_client)
+    order_param = RankingOrderParam()
+    order_param.order_calc = RankingOrderCalc.STANDARD
+    order_param.offset = offset
+    order_param.count = count
 
-            order_param = RankingOrderParam()
-            order_param.order_calc = RankingOrderCalc.STANDARD
-            order_param.offset = offset
-            order_param.count = count
+    # Necessary in the case that order_param.count exceeds 255
+    remaining = order_param.count
 
-            # Necessary in the case that order_param.count exceeds 255
-            remaining = order_param.count
+    # Ignore offset if PID is present
+    if pid:
+        order_param.offset = 1
 
-            # Ignore offset if PID is present
-            if pid:
-                order_param.offset = 1
+    boards = await get_boards_stub(ranking_client, track_id, order_param, pid)
 
-            boards = await get_boards_stub(ranking_client, track_id, order_param, pid)
+    # Return early if requested amount is 255 or less
+    if remaining <= 255:
+        return boards
 
-            # Return early if requested amount is 255 or less
-            if remaining <= 255:
-                return boards
+    # Subtract 254 instead of 255 in order to prevent double-counting a record
+    # and thus prevent returning one fewer record than the amount requested
+    remaining -= 254
 
-            # Subtract 254 instead of 255 in order to prevent double-counting a record
-            # and thus prevent returning one fewer record than the amount requested
-            remaining -= 254
+    # Set to 1 to be able to get times that are slower than that of a particular player
+    order_param.offset = 1
 
-            # Set to 1 to be able to get times that are slower than that of a particular player
-            order_param.offset = 1
+    # Loop until requested amount is exhausted
+    while remaining > 0:
+        order_param.count = remaining if remaining <= 255 else 255
+        pid = boards.data[-1].pid  # Get last PID in list to use as the base for the next request
 
-            # Loop until requested amount is exhausted
-            while remaining > 0:
-                order_param.count = remaining if remaining <= 255 else 255
-                pid = boards.data[-1].pid  # Get last PID in list to use as the base for the next request
+        frag = await get_boards_stub(ranking_client, track_id, order_param, pid)
+        boards.data.extend(frag.data[1:])
+        remaining -= 254
 
-                frag = await get_boards_stub(ranking_client, track_id, order_param, pid)
-                boards.data.extend(frag.data[1:])
-                remaining -= 254
-
-                if order_param.count != len(frag.data):
-                    break
+        if order_param.count != len(frag.data):
+            break
 
     return boards
 
 
-async def get_nnids(nnas_client: NNASClient, pids: Iterable) -> ChainMap:
+async def get_nnids(nnas_client: NNASClient, pids: Iterable, max_concurrent=32) -> ChainMap:
     max_amt = 500
-    sem = asyncio.Semaphore(32)  # Prevent flooding servers
+    sem = asyncio.Semaphore(max_concurrent)  # Prevent flooding servers
     pids = list(pids)
 
     # https://stackoverflow.com/a/60004447

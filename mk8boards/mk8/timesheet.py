@@ -3,13 +3,12 @@ from contextlib import suppress
 from dataclasses import dataclass, field
 from typing import Dict, List, Union
 
-from nintendo.nex import backend, common
-from nintendo.nex.ranking import RankingClient, RankingMode, RankingOrderCalc
-from nintendo.nex.ranking import RankingOrderParam, RankingRankData
-from nintendo.nnas import NNASError
+from nintendo.nex import common
+from nintendo.nex.ranking import (RankingClient, RankingMode, RankingOrderCalc,
+                                  RankingOrderParam, RankingRankData)
+from nintendo.nnas import NNASClient, NNASError
 
 from mk8boards.common import MK8Tracks
-from mk8boards.mk8.boards_client import MK8Client
 from mk8boards.mk8.extract_info import MK8PlayerInfo
 
 
@@ -81,7 +80,7 @@ async def get_time(pid: int, track_id: int, ranking_client: RankingClient,
 
 
 async def get_times(pids: List[int], track_id: int, ranking_client: RankingClient,
-                    order_param: RankingOrderParam) -> Dict[str, RankingRankData]:
+                    order_param: RankingOrderParam) -> Dict[int, RankingRankData]:
     # Initializes each time to None in case no times are found
     times = {pid: None for pid in pids}
     with suppress(common.RMCError):
@@ -95,90 +94,71 @@ async def get_times(pids: List[int], track_id: int, ranking_client: RankingClien
     return times
 
 
-async def get_timesheet(client: MK8Client, nnid: str) -> Timesheet:
-    async with backend.connect(client.settings, client.nex_token.host, client.nex_token.port) as be:
-        async with be.login(str(client.nex_token.pid), client.nex_token.password) as be_client:
-            ranking_client = RankingClient(be_client)
+async def get_timesheet(ranking_client: RankingClient, nnid: str, nnas_client: NNASClient = None) -> Timesheet:
+    if nnas_client is None:
+        nnas_client = NNASClient()
 
-            order_param = RankingOrderParam()
-            order_param.order_calc = RankingOrderCalc.STANDARD
-            order_param.offset = 0
-            order_param.count = 1
+    order_param = RankingOrderParam()
+    order_param.order_calc = RankingOrderCalc.STANDARD
+    order_param.offset = 0
+    order_param.count = 1
 
-            pid = await client.nnas.get_pid(nnid)
+    pid = await nnas_client.get_pid(nnid)
 
-            tasks = [
-                asyncio.ensure_future(get_time(pid, track.id_, ranking_client, order_param))
-                for track in MK8Tracks
-            ]
-            times = await asyncio.gather(*tasks)
-            timesheet = {track.abbr: time for track, time in zip(MK8Tracks, times)}
+    tasks = [
+        asyncio.ensure_future(get_time(pid, track.id_, ranking_client, order_param))
+        for track in MK8Tracks
+    ]
+    times = await asyncio.gather(*tasks)
+    timesheet = {track.abbr: time for track, time in zip(MK8Tracks, times)}
 
-            try:
-                mii_name = (await client.nnas.get_mii(pid)).name
-            except NNASError:
-                mii_name = ""
-                for time in timesheet.values():
-                    if time is not None:
-                        mii_name = MK8PlayerInfo(time.common_data).mii.mii_name
-                        break
+    try:
+        mii_name = (await nnas_client.get_mii(pid)).name
+    except NNASError:
+        mii_name = ""
+        for time in timesheet.values():
+            if time is not None:
+                mii_name = MK8PlayerInfo(time.common_data).mii.mii_name
+                break
 
-            return Timesheet(pid, nnid, mii_name, timesheet)
-
-
-async def get_timesheets(client: MK8Client, nnids: List[str]) -> List[Timesheet]:
-    async with backend.connect(client.settings, client.nex_token.host, client.nex_token.port) as be:
-        async with be.login(str(client.nex_token.pid), client.nex_token.password) as be_client:
-            ranking_client = RankingClient(be_client)
-
-            order_param = RankingOrderParam()
-            order_param.order_calc = RankingOrderCalc.STANDARD
-            order_param.offset = 0
-            order_param.count = len(nnids) + 1
-
-            pids = await client.nnas.get_pids(nnids)
-            # Try-block is necessary in case all the requested accounts have since been deleted
-            try:
-                miis = {mii.pid: mii for mii in (await client.nnas.get_miis(pids.values()))}
-            except NNASError:
-                miis = {}
-
-            tasks = [
-                asyncio.ensure_future(get_times(pids.values(), track.id_, ranking_client, order_param))
-                for track in MK8Tracks
-            ]
-            times = await asyncio.gather(*tasks)
-
-            timesheets = []
-            for nnid, pid in pids.items():
-                records = {track.abbr: time[pid] for track, time in zip(MK8Tracks, times)}
-                if pid in miis:
-                    nnid = miis[pid].nnid
-                    mii_name = miis[pid].name
-                else:
-                    mii_name = ""
-                    for time in records.values():
-                        if time is not None:
-                            mii_name = MK8PlayerInfo(time.common_data).mii.mii_name
-                            break
-                timesheets.append(Timesheet(pid, nnid, mii_name, records))
-
-            return timesheets
+    return Timesheet(pid, nnid, mii_name, timesheet)
 
 
-# async def timesheet_test(ranking_client: RankingClient, nnas_client: NNASClient, nnid: str) -> Timesheet:
-#     order_param = RankingOrderParam()
-#     order_param.order_calc = RankingOrderCalc.STANDARD
-#     order_param.offset = 0
-#     order_param.count = 1
-#
-#     pid = await nnas_client.get_pid(nnid)
-#     mii_name = (await nnas_client.get_mii(pid)).name
-#
-#     tasks = [
-#         asyncio.ensure_future(get_time(pid, track.id_, ranking_client, order_param))
-#         for track in MK8Tracks
-#     ]
-#     times = await asyncio.gather(*tasks)
-#     timesheet = {track.abbr: time for track, time in zip(MK8Tracks, times)}
-#     return Timesheet(pid, nnid, mii_name, timesheet)
+async def get_timesheets(ranking_client: RankingClient, nnids: List[str],
+                         nnas_client: NNASClient = None) -> List[Timesheet]:
+    if nnas_client is None:
+        nnas_client = NNASClient()
+
+    order_param = RankingOrderParam()
+    order_param.order_calc = RankingOrderCalc.STANDARD
+    order_param.offset = 0
+    order_param.count = len(nnids) + 1
+
+    pids = await nnas_client.get_pids(nnids)
+    # Try-block is necessary in case all the requested accounts have since been deleted
+    try:
+        miis = {mii.pid: mii for mii in (await nnas_client.get_miis(pids.values()))}
+    except NNASError:
+        miis = {}
+
+    tasks = [
+        asyncio.ensure_future(get_times(pids.values(), track.id_, ranking_client, order_param))
+        for track in MK8Tracks
+    ]
+    times = await asyncio.gather(*tasks)
+
+    timesheets = []
+    for nnid, pid in pids.items():
+        records = {track.abbr: time[pid] for track, time in zip(MK8Tracks, times)}
+        if pid in miis:
+            nnid = miis[pid].nnid
+            mii_name = miis[pid].name
+        else:
+            mii_name = ""
+            for time in records.values():
+                if time is not None:
+                    mii_name = MK8PlayerInfo(time.common_data).mii.mii_name
+                    break
+        timesheets.append(Timesheet(pid, nnid, mii_name, records))
+
+    return timesheets

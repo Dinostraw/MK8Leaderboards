@@ -1,11 +1,9 @@
 import asyncio
 from typing import Dict, List, Union
 
-from nintendo.nex import backend
 from nintendo.nex.ranking import RankingClient, RankingOrderCalc, RankingOrderParam, RankingStatFlags
 
 from mk8boards.common import MK8Tracks
-from mk8boards.mk8.boards_client import MK8Client
 from mk8boards.mk8.timesheet import format_time
 
 
@@ -45,22 +43,19 @@ def format_total_time(score: Union[int, float]) -> str:
     return "%i:%03i:%02i:%02i:%02i.%03i" % (years, days, hours, minutes, seconds, millisec)
 
 
-async def get_stats(client: MK8Client, tracks: Union[MK8Tracks, List[MK8Tracks]]) -> Dict[str, List[float]]:
+async def get_stats(ranking_client: RankingClient, tracks: Union[MK8Tracks, List[MK8Tracks]])\
+        -> Dict[str, List[float]]:
     if not isinstance(tracks, list):
         tracks = [tracks]
 
-    async with backend.connect(client.settings, client.nex_token.host, client.nex_token.port) as be:
-        async with be.login(str(client.nex_token.pid), client.nex_token.password) as be_client:
-            ranking_client = RankingClient(be_client)
+    order_param = RankingOrderParam()
+    order_param.order_calc = RankingOrderCalc.STANDARD
+    order_param.offset = 0  # Start at 1st place
+    order_param.count = 0  # Download literally nothing
 
-            order_param = RankingOrderParam()
-            order_param.order_calc = RankingOrderCalc.STANDARD
-            order_param.offset = 0  # Start at 1st place
-            order_param.count = 0  # Download literally nothing
+    tasks = [asyncio.ensure_future(ranking_client.get_stats(
+        track.id_, order_param, RankingStatFlags.ALL)
+    ) for track in tracks]
 
-            tasks = [asyncio.ensure_future(ranking_client.get_stats(
-                track.id_, order_param, RankingStatFlags.ALL)
-            ) for track in tracks]
-
-            track_stats = await asyncio.gather(*tasks)
-            return {track.abbr: ts.stats for track, ts in zip(tracks, track_stats)}
+    track_stats = await asyncio.gather(*tasks)
+    return {track.abbr: ts.stats for track, ts in zip(tracks, track_stats)}

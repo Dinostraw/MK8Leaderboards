@@ -14,21 +14,21 @@ ascii2fullwidth_mapping[ord(' ')] = ord('　')
 fullwidth2ascii_mapping = {full: ascii_ for ascii_, full in ascii2fullwidth_mapping.items()}
 
 
-def hira2kata(phrase: str) -> str:
-    return phrase.translate(hira2kata_mapping)
+def hira2kata(string: str) -> str:
+    return string.translate(hira2kata_mapping)
 
 
-def kata2hira(phrase: str) -> str:
-    return phrase.translate(kata2hira_mapping)
+def kata2hira(string: str) -> str:
+    return string.translate(kata2hira_mapping)
 
 
-def ascii2fullwidth(phrase: str) -> str:
-    return phrase.translate(ascii2fullwidth_mapping)
+def ascii2fullwidth(string: str) -> str:
+    return string.translate(ascii2fullwidth_mapping)
 
 
-def fullwidth2ascii(phrase: str) -> str:
-    return phrase.translate(fullwidth2ascii_mapping)
+def fullwidth2ascii(string: str) -> str:
+    return string.translate(fullwidth2ascii_mapping)
 
 
-def standardize_abbr(abbr: str) -> str:
-    return hira2kata(fullwidth2ascii(abbr)).lower()
+def standardize_abbr(string: str) -> str:
+    return hira2kata(fullwidth2ascii(string)).lower()

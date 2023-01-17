@@ -12,7 +12,27 @@ def _initialize_aliases():
                 for abbr in abbrs}
 
 
-class TrackEnumMeta(EnumMeta):
+class MK8GameInfo:
+    TITLE_ID_EUR = 0x000500001010ED00
+    TITLE_ID_USA = 0x000500001010EC00
+    TITLE_ID_JAP = 0x000500001010EB00
+    LATEST_VERSION = 64
+
+    GAME_SERVER_ID = 0x1010EB00
+    ACCESS_KEY = "25dbf96a"
+    NEX_VERSION = 30504  # 3.5.4 (AMK patch)
+
+
+class MK8DXGameInfo:
+    TITLE_ID = 0x0100152000022000
+    LATEST_VERSION = 0xA0000
+
+    GAME_SERVER_ID = 0x2B309E01
+    ACCESS_KEY = "09c1c475"
+    NEX_VERSION = 40302
+
+
+class _TrackEnumMeta(EnumMeta):
     _abbr_aliases = _initialize_aliases()
 
     def __getitem__(self, name):
@@ -21,8 +41,25 @@ class TrackEnumMeta(EnumMeta):
         return super().__getitem__(name)
 
 
+class _Tracks(Enum, metaclass=_TrackEnumMeta):
+    # https://stackoverflow.com/a/43210118
+    def __new__(cls, *values):
+        obj = object.__new__(cls)
+        # ID value is the canonical value
+        obj._value_ = values[-1]
+        for other_value in values[:-1]:
+            cls._value2member_map_[other_value] = obj
+        obj._all_values = values
+        return obj
+
+    def __init__(self, fullname: str, abbr: str, id_: int):
+        self.fullname = fullname
+        self.abbr = abbr
+        self.id_ = id_
+
+
 # Track IDs: https://github.com/Kinnay/NintendoClients/wiki/Mario-Kart-8-Track-IDs
-class MK8Tracks(Enum, metaclass=TrackEnumMeta):
+class MK8Tracks(_Tracks):
     # Nitro Tracks
     MARIO_KART_STADIUM = ("Mario Kart Stadium", "MKS", 27)
     WATER_PARK = ("Water Park", "WP", 28)
@@ -87,24 +124,9 @@ class MK8Tracks(Enum, metaclass=TrackEnumMeta):
     SUPER_BELL_SUBWAY = ("Super Bell Subway", "dSBS", 48)
     BIG_BLUE = ("Big Blue", "dBB", 63)
 
-    # https://stackoverflow.com/a/43210118
-    def __new__(cls, *values):
-        obj = object.__new__(cls)
-        # ID value is the canonical value
-        obj._value_ = values[-1]
-        for other_value in values[:-1]:
-            cls._value2member_map_[other_value] = obj
-        obj._all_values = values
-        return obj
-
-    def __init__(self, fullname: str, abbr: str, id_: int):
-        self.fullname = fullname
-        self.abbr = abbr
-        self.id_ = id_
-
 
 # Booster DLC Track IDs: https://github.com/Dinostraw/MK8Leaderboards/wiki/Booster-Track-IDs
-class BoosterTracks(Enum, metaclass=TrackEnumMeta):
+class BoosterTracks(_Tracks):
     # Wave 1 Tracks
     TOUR_PARIS_PROMENADE = ("Tour Paris Promenade", "bPP", 75)
     MK7_TOAD_CIRCUIT = ("3DS Toad Circuit", "bTC", 76)
@@ -127,24 +149,36 @@ class BoosterTracks(Enum, metaclass=TrackEnumMeta):
     WII_MUSHROOM_GORGE = ("Wii Mushroom Gorge", "bMG", 89)
     SKY_HIGH_SUNDAE = ("Sky-High Sundae", "bSHS", 90)
 
+    # Wave 3 Tracks
+    TOUR_LONDON_LOOP = ("Tour London Loop", "bLL", 91)
+    GBA_BOO_LAKE = ("GBA Boo Lake", "bBL", 92)
+    MK7_ROCK_ROCK_MOUNTAIN = ("3DS Rock Rock Mountain", "bRRM", 93)
+    WII_MAPLE_TREEWAY = ("Wii Maple Treeway", "bMT", 94)
+
+    TOUR_BERLIN_BYWAYS = ("Tour Berlin Byways", "bBB", 95)
+    DS_PEACH_GARDENS = ("DS Peach Gardens", "bPG", 96)
+    TOUR_MERRY_MOUNTAIN = ("Tour Merry Mountain", "bMM", 97)
+    MK7_RAINBOW_ROAD = ("3DS Rainbow Road", "bRR", 98)
+
+
+class _Cups(Enum):
     # https://stackoverflow.com/a/43210118
     def __new__(cls, *values):
         obj = object.__new__(cls)
-        # ID value is the canonical value
-        obj._value_ = values[-1]
-        for other_value in values[:-1]:
-            cls._value2member_map_[other_value] = obj
-        obj._all_values = values
+        obj._value_ = values
+        for x in values:
+            cls._value2member_map_[x] = obj
         return obj
 
-    def __init__(self, fullname: str, abbr: str, id_: int):
-        self.fullname = fullname
-        self.abbr = abbr
-        self.id_ = id_
+    def __init__(self, track0: MK8Tracks, track1: MK8Tracks, track2: MK8Tracks, track3: MK8Tracks):
+        self.track0 = track0
+        self.track1 = track1
+        self.track2 = track2
+        self.track3 = track3
 
 
 # Found across both version of the game; each cup has 4 predefined courses
-class MK8Cups(Enum):
+class MK8Cups(_Cups):
     # Nitro Cups
     MUSHROOM = (MK8Tracks.MARIO_KART_STADIUM, MK8Tracks.WATER_PARK,
                 MK8Tracks.SWEET_SWEET_CANYON, MK8Tracks.THWOMP_RUINS)
@@ -175,23 +209,9 @@ class MK8Cups(Enum):
     BELL = (MK8Tracks.MK7_NEO_BOWSER_CITY, MK8Tracks.GBA_RIBBON_ROAD,
             MK8Tracks.SUPER_BELL_SUBWAY, MK8Tracks.BIG_BLUE)
 
-    # https://stackoverflow.com/a/43210118
-    def __new__(cls, *values):
-        obj = object.__new__(cls)
-        obj._value_ = values
-        for x in values:
-            cls._value2member_map_[x] = obj
-        return obj
-
-    def __init__(self, track0: MK8Tracks, track1: MK8Tracks, track2: MK8Tracks, track3: MK8Tracks):
-        self.track0 = track0
-        self.track1 = track1
-        self.track2 = track2
-        self.track3 = track3
-
 
 # Exclusive to Deluxe; each cup has 4 predefined courses
-class BoosterCups(Enum):
+class BoosterCups(_Cups):
     # Wave 1 Cups
     GOLDEN_DASH = (BoosterTracks.TOUR_PARIS_PROMENADE, BoosterTracks.MK7_TOAD_CIRCUIT,
                    BoosterTracks.N64_CHOCO_MOUNTAIN, BoosterTracks.WII_COCONUT_MALL)
@@ -203,6 +223,12 @@ class BoosterCups(Enum):
               BoosterTracks.N64_KALIMARI_DESERT, BoosterTracks.DS_WALUIGI_PINBALL)
     PROPELLER = (BoosterTracks.TOUR_SYDNEY_SPRINT, BoosterTracks.GBA_SNOW_LAND,
                  BoosterTracks.WII_MUSHROOM_GORGE, BoosterTracks.SKY_HIGH_SUNDAE)
+
+    # Wave 3 Cups
+    ROCK = (BoosterTracks.TOUR_LONDON_LOOP, BoosterTracks.GBA_BOO_LAKE,
+            BoosterTracks.MK7_ROCK_ROCK_MOUNTAIN, BoosterTracks.WII_MAPLE_TREEWAY)
+    MOON = (BoosterTracks.TOUR_BERLIN_BYWAYS, BoosterTracks.DS_PEACH_GARDENS,
+            BoosterTracks.TOUR_MERRY_MOUNTAIN, BoosterTracks.MK7_RAINBOW_ROAD)
 
 
 class Characters(Enum):

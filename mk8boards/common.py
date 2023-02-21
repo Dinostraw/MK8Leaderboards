@@ -1,6 +1,7 @@
 import json
 import os
 from enum import Enum, EnumMeta
+from typing import NamedTuple
 
 from mk8boards.str_mappings import standardize_abbr
 
@@ -30,6 +31,19 @@ class MK8DXGameInfo:
     GAME_SERVER_ID = 0x2B309E01
     ACCESS_KEY = "09c1c475"
     NEX_VERSION = 40302
+
+
+class InvalidGhostFormat(Exception):
+    pass
+
+
+class MK8TimeTuple(NamedTuple):
+    mins: int
+    secs: int
+    msecs: int
+
+    def __str__(self):
+        return f"{self.mins}:{self.secs:02}.{self.msecs:03}"
 
 
 class _TrackEnumMeta(EnumMeta):

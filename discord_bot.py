@@ -10,7 +10,7 @@ from nintendo.nex.ranking import RankingClient, RankingRankData
 from mk8boards.common import MK8Cups, MK8Tracks
 from mk8boards.mk8 import timesheet as ts
 from mk8boards.mk8.boards_client import MK8Client
-from mk8boards.mk8.track_stats import get_stats, format_all_stats, stats_to_labeled_dict
+from mk8boards.mk8.track_stats import get_stats, format_total_time
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -109,20 +109,34 @@ class Commands(commands.Cog):
         finally:
             await message.edit(embed=embed)
 
-    @commands.command(description="Gets stats")
-    async def stats(self, ctx, *args):
-        embed = discord.Embed()
-        if len(args) == 0:
-            tracks = [track for track in MK8Tracks]
-            embed.title = "Stats for all tracks:"
-            async with self.bot.mk8_client.backend_login() as bc:
-                rc = RankingClient(bc)
-                result = await get_stats(rc, tracks)
-            embed.description = "```%s```" % format_all_stats(result)
-            await ctx.reply(embed=embed)
-            return
+    @commands.hybrid_command(description="Gets stats")
+    async def stats(self, ctx, abbr):
+        if abbr.lower() == "all" or abbr == '*':
+            embed = await self._aggregate_stats()
+        else:
+            embed = await self._individual_stats(abbr)
+        await ctx.reply(embed=embed)
 
-        abbr = args[0]
+    async def _aggregate_stats(self):
+        embed = discord.Embed()
+        tracks = [track for track in MK8Tracks]
+        embed.title = "Stats for all tracks:"
+        async with self.bot.mk8_client.backend_login() as bc:
+            rc = RankingClient(bc)
+            result = await get_stats(rc, tracks)
+        total_records = sum(stat.num_records for stat in result.values())
+        aggregate_time = sum(stat.sum_of_times for stat in result.values())
+        worst_time = max(stat.worst_time for stat in result.values())
+        average_time = sum(stat.average_time * stat.num_records / total_records
+                           for stat in result.values())
+        embed.add_field(name="Total Times", value=total_records)
+        embed.add_field(name="Average Time", value=ts.format_time(average_time))
+        embed.add_field(name="Sum of Uploaded Times", value=format_total_time(aggregate_time))
+        embed.add_field(name="Slowest Time", value=ts.format_time(worst_time))
+        return embed
+
+    async def _individual_stats(self, abbr):
+        embed = discord.Embed()
         try:
             track = MK8Tracks(abbr)
         except KeyError:
@@ -133,11 +147,11 @@ class Commands(commands.Cog):
             async with self.bot.mk8_client.backend_login() as bc:
                 rc = RankingClient(bc)
                 result = (await get_stats(rc, track))[track.abbr]
-            track_stats = stats_to_labeled_dict(result)
-            for stat, value in track_stats.items():
-                embed.add_field(name=stat, value=value)
-        finally:
-            await ctx.reply(embed=embed)
+            embed.add_field(name="Total Times", value=result.num_records)
+            embed.add_field(name="Average Time", value=ts.format_time(result.average_time))
+            embed.add_field(name="Sum of Uploaded Times", value=format_total_time(result.sum_of_times))
+            embed.add_field(name="Slowest Time", value=ts.format_time(result.worst_time))
+        return embed
 
     @commands.hybrid_command(aliases=["ts"], description="Gets the timesheet for the player with the given NNID")
     async def timesheet(self, ctx, nnid):

@@ -39,14 +39,16 @@ async def main():
         rc = RankingClient(bc)
         stats = await get_stats(rc, [track for track in Tracks])
 
-        ranks = {stat[0]: n for n, stat in enumerate(sorted(stats.items(), reverse=True, key=lambda x: x[1][0]),
-                                                     start=1)}
+        ranks = {
+            abbr: n for n, (abbr, _) in enumerate(sorted(stats.items(), reverse=True, key=lambda x: x[1].num_records),
+                                                  start=1)
+        }
         print("Rank | Track | Total Times")
         print("=" * 26)
         for abbr, tstats in stats.items():
-            print(f"{int(ranks[abbr]):>4d} | {abbr:>5s} | {int(tstats[0]):>11d}")
+            print(f"{int(ranks[abbr]):>4d} | {abbr:>5s} | {int(tstats.num_records):>11d}")
 
-        stats = {k: v for k, v in sorted(stats.items(), key=lambda x: x[1][0])}
+        stats = {k: v for k, v in sorted(stats.items(), key=lambda x: x[1].num_records)}
         print(format_all_stats(stats))
 
 

@@ -10,7 +10,7 @@ from nintendo.nex.ranking import (RankingClient, RankingMode, RankingOrderCalc,
 
 from mk8boards.common import MK8Tracks as Tracks
 from mk8boards.mk8.boards_client import MK8Client
-from mk8boards.mk8.extract_info import MK8GhostInfo, MK8PlayerInfo
+from mk8boards.mk8.structures import MK8GhostInfo, MK8PlayerInfo
 
 logging.basicConfig(level=logging.INFO)
 
@@ -32,8 +32,8 @@ REGION_NAME = os.getenv("REGION_NAME")
 LANGUAGE = os.getenv("LANGUAGE")
 
 # Track IDs: https://github.com/Kinnay/NintendoClients/wiki/Mario-Kart-8-Track-IDs
-TRACK_ID = Tracks.GCN_YOSHI_CIRCUIT.id_
-NNID = "Dinostraw"  # NNID of targeted player
+TRACK_ID = Tracks.MARIO_CIRCUIT.id_
+NNID = "oNESTAo"  # NNID of targeted player
 
 
 class GhostResult:

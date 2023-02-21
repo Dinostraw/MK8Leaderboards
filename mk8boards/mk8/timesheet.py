@@ -9,7 +9,7 @@ from nintendo.nex.ranking import (RankingClient, RankingMode, RankingOrderCalc,
 from nintendo.nnas import NNASClient, NNASError
 
 from mk8boards.common import MK8Tracks
-from mk8boards.mk8.extract_info import MK8PlayerInfo
+from mk8boards.mk8.structures import MK8PlayerInfo
 
 
 @dataclass(frozen=True)
@@ -82,15 +82,14 @@ async def get_time(pid: int, track_id: int, ranking_client: RankingClient,
 async def get_times(pids: List[int], track_id: int, ranking_client: RankingClient,
                     order_param: RankingOrderParam) -> Dict[int, RankingRankData]:
     # Initializes each time to None in case no times are found
-    times = {pid: None for pid in pids}
+    times = dict.fromkeys(pids, None)
     with suppress(common.RMCError):
         records = (await ranking_client.get_ranking_by_pid_list(
             pids, RankingMode.GLOBAL, track_id, order_param, 0
-        )).data
-        for rankdata in records:
-            if rankdata.pid not in pids:
-                continue
-            times[rankdata.pid] = rankdata
+        ))
+        for rankdata in records.data:
+            if rankdata.pid in pids:
+                times[rankdata.pid] = rankdata
     return times
 
 

@@ -74,21 +74,7 @@ class MK8DXGhostInfo:
                 "Ghost not in the proper format: likely not a Mario Kart 8 Deluxe ghost"
             )
 
-        # Basic Info
-        if self.data[0x1CC] <= common.MK8Tracks.BIG_BLUE.id_:
-            self.track = common.MK8Tracks(self.data[0x1CC])
-        else:
-            self.track = common.BoosterTracks(self.data[0x1CC])
-        cc_id = self.data[0x3C]
-        if cc_id < len(self._engine_classes):
-            self.engine_class = self._engine_classes[cc_id]
-        else:
-            self.engine_class = "???"
         self.motion = motion  # Still being investigated if this exists internally
-        self.player_name_bytes = self.data[0x300:0x314]
-        # Strip everything after the null character if one occurs
-        self.player_name = self.player_name_bytes.decode("utf_16").split("\0", 1)[0]
-        self.mii = MiiDataSwitch.parse(self.data[0x244:0x29C])
 
         # Timestamp
         self.year = int.from_bytes(self.data[0x0C:0x10], "little")
@@ -99,8 +85,12 @@ class MK8DXGhostInfo:
         self.min = self.data[0x20]
         self.sec = self.data[0x24]
 
-        # Country Info
-        self.country_id = self.data[0x2A0:0x2A2].decode()[-1::-1]
+        # Race Settings
+        cc_id = self.data[0x3C]
+        if cc_id < len(self._engine_classes):
+            self.engine_class = self._engine_classes[cc_id]
+        else:
+            self.engine_class = "???"
 
         # Combo Info
         self.character = common.Characters(self.data[0x68])
@@ -109,6 +99,23 @@ class MK8DXGhostInfo:
         self.vehicle_body = common.MK8DXVehicleBodies(self.data[0x5C])
         self.tire = common.Tires(self.data[0x60])
         self.glider = common.Gliders(self.data[0x64])
+
+        # Basic Info
+        if self.data[0x1CC] <= common.MK8Tracks.BIG_BLUE.id_:
+            self.track = common.MK8Tracks(self.data[0x1CC])
+        else:
+            self.track = common.BoosterTracks(self.data[0x1CC])
+
+        # Mii data
+        self.mii = MiiDataSwitch.parse(self.data[0x244:0x29C])
+
+        # Country Info
+        self.country_id = self.data[0x2A0:0x2A2].decode()[-1::-1]
+
+        # Player Name
+        self.player_name_bytes = self.data[0x300:0x314]
+        # Strip everything after the null character if one occurs
+        self.player_name = self.player_name_bytes.decode("utf_16").split("\0", 1)[0]
 
         # Total Time and Splits
         self.total_time = MK8TimeTuple(

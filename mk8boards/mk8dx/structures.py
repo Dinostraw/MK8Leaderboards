@@ -19,22 +19,22 @@ class MK8DXGhostInfo:
         if not staff_ghost:
             if prefix == 'dg':
                 order = 0  # Can be anything from 0 to 31 inclusive
-            elif self.track.id_ <= common.MK8Tracks.BIG_BLUE.id_:
-                order = self.track.id_ - 0x10
+            elif self.track <= common.MK8Tracks.BIG_BLUE:
+                order = self.track - 0x10
             else:
-                order = self.track.id_ - 0x1B
+                order = self.track - 0x1B
             return f"{prefix}{order:02d}.dat"
 
         # Staff ghosts have a much more complicated filename format
         # For the 48 base-game tracks (Big Blue has the highest ID of these)
-        if self.track.id_ <= common.MK8Tracks.BIG_BLUE.id_:
-            header = f"{prefix}{self.track.id_-0x10:02x}{self.track.id_:02x}"
+        if self.track <= common.MK8Tracks.BIG_BLUE:
+            header = f"{prefix}{self.track-0x10:02x}{self.track:02x}"
         # For the DLC tracks
         else:
-            header = f"{prefix}{self.track.id_-0x1B:02x}{self.track.id_:02x}"
+            header = f"{prefix}{self.track-0x1B:02x}{self.track:02x}"
 
-        character = f"{self.character.value:02x}{self.variant:02x}{self.mii_weight:02x}"
-        combo = f"{character}{self.vehicle_body.value:02x}{self.tire.value:02x}{self.glider.value:02x}"
+        character = f"{self.character:02x}{self.variant:02x}{self.mii_weight:02x}"
+        combo = f"{character}{self.vehicle_body:02x}{self.tire:02x}{self.glider:02x}"
 
         endtime = f'{self.total_time.mins:01x}{self.total_time.secs:02x}{self.total_time.msecs:03x}'
 
@@ -101,7 +101,7 @@ class MK8DXGhostInfo:
         self.glider = common.Gliders(self.data[0x64])
 
         # Basic Info
-        if self.data[0x1CC] <= common.MK8Tracks.BIG_BLUE.id_:
+        if self.data[0x1CC] <= common.MK8Tracks.BIG_BLUE:
             self.track = common.MK8Tracks(self.data[0x1CC])
         else:
             self.track = common.BoosterTracks(self.data[0x1CC])

@@ -32,8 +32,8 @@ REGION_NAME = os.getenv("REGION_NAME")
 LANGUAGE = os.getenv("LANGUAGE")
 
 # Track IDs: https://github.com/Kinnay/NintendoClients/wiki/Mario-Kart-8-Track-IDs
-TRACK_ID = Tracks.MARIO_CIRCUIT.id_
-NNID = "oNESTAo"  # NNID of targeted player
+TRACK_ID = Tracks.THWOMP_RUINS.value
+NNID = "TheRealAli-A"  # NNID of targeted player
 
 
 class GhostResult:

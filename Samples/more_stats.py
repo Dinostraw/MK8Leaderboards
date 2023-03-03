@@ -49,7 +49,7 @@ def main():
     track_name = "Unknown Track"
     track_abbr = "???"
     for track in Tracks:
-        if int(track_id) == track.id_:
+        if int(track_id) == track:
             track_name = track.fullname
             track_abbr = track.abbr
 

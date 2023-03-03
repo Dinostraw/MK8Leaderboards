@@ -43,12 +43,12 @@ class MK8GhostInfo:
 
         if prefix == 'dg':
             # The 00 can be anything from 00 to 0f inclusive
-            header = f"{prefix}00{self.track.id_:02x}"
+            header = f"{prefix}00{self.track:02x}"
         else:
-            header = f"{prefix}{self.track.id_-0x10:02x}{self.track.id_:02x}"
+            header = f"{prefix}{self.track-0x10:02x}{self.track:02x}"
 
-        character = f"{self.character.value:02x}{self.variant:02x}{self.mii_weight:02x}"
-        combo = f"{character}{self.vehicle_body.value:02x}{self.tire.value:02x}{self.glider.value:02x}"
+        character = f"{self.character:02x}{self.variant:02x}{self.mii_weight:02x}"
+        combo = f"{character}{self.vehicle_body:02x}{self.tire:02x}{self.glider:02x}"
 
         endtime = f'{self.total_time.mins:01x}{self.total_time.secs:02x}{self.total_time.msecs:03x}'
 

@@ -105,7 +105,7 @@ async def get_timesheet(ranking_client: RankingClient, nnid: str, nnas_client: N
     pid = await nnas_client.get_pid(nnid)
 
     tasks = [
-        asyncio.ensure_future(get_time(pid, track.id_, ranking_client, order_param))
+        asyncio.ensure_future(get_time(pid, track.value, ranking_client, order_param))
         for track in MK8Tracks
     ]
     times = await asyncio.gather(*tasks)
@@ -141,7 +141,7 @@ async def get_timesheets(ranking_client: RankingClient, nnids: List[str],
         miis = {}
 
     tasks = [
-        asyncio.ensure_future(get_times(pids.values(), track.id_, ranking_client, order_param))
+        asyncio.ensure_future(get_times(pids.values(), track.value, ranking_client, order_param))
         for track in MK8Tracks
     ]
     times = await asyncio.gather(*tasks)

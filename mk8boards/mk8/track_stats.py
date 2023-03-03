@@ -54,7 +54,7 @@ async def get_stats(ranking_client: RankingClient, tracks: Union[MK8Tracks, List
     order_param.count = 0  # Download literally nothing
 
     tasks = [asyncio.ensure_future(ranking_client.get_stats(
-        track.id_, order_param, RankingStatFlags.ALL)
+        track.value, order_param, RankingStatFlags.ALL)
     ) for track in tracks]
 
     track_stats = await asyncio.gather(*tasks)

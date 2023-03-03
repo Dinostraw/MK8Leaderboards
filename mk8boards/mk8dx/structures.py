@@ -85,7 +85,7 @@ class MK8DXGhostInfo:
         else:
             self.engine_class = "???"
         self.motion = motion  # Still being investigated if this exists internally
-        self.player_name_bytes = self.data[0x254:0x268]
+        self.player_name_bytes = self.data[0x300:0x314]
         # Strip everything after the null character if one occurs
         self.player_name = self.player_name_bytes.decode("utf_16").split("\0", 1)[0]
         self.mii = MiiDataSwitch.parse(self.data[0x244:0x29C])

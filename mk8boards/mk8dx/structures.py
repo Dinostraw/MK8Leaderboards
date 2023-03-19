@@ -9,7 +9,8 @@ from mk8boards.common import InvalidGhostFormat, MK8TimeTuple
 class MK8DXGhostInfo:
     _engine_classes = ("50cc", "100cc", "150cc", "200cc")
 
-    def generate_filename(self, prefix: Literal['sg', 'fg', 'dg'] = 'sg', staff_ghost=False) -> str:
+    def generate_filename(self, prefix: Literal['sg', 'fg', 'dg'] = 'sg',
+                          staff_ghost: bool = False, slot: int = 0) -> str:
         # Refer to the following link for the full breakdown of the filename structures:
         # https://github.com/Dinostraw/MK8Leaderboards/wiki/Ghost-Data-(Deluxe)#filename-formats
         if prefix not in ('sg', 'fg', 'dg'):
@@ -18,7 +19,7 @@ class MK8DXGhostInfo:
         # Ghosts created in-game have very short filenames
         if not staff_ghost:
             if prefix == 'dg':
-                order = 0  # Can be anything from 0 to 31 inclusive
+                order = slot  # Can be anything from 0 to 31 inclusive
             elif self.track <= common.MK8Tracks.BIG_BLUE:
                 order = self.track - 0x10
             else:
@@ -55,10 +56,10 @@ class MK8DXGhostInfo:
 
     def generate_header(self) -> bytes:
         ver = b'\x00\x00\x00\x00'
-        size = int.to_bytes(len(self.data) + 0x48, 4, "big")
-        crc = crc32(self.data).to_bytes(4, "big")
+        size = int.to_bytes(len(self.data) + 0x48, 4, "little")
+        crc = crc32(self.data).to_bytes(4, "little")
 
-        return b'CTG0' + ver + size + b'\0' * 0x2C + crc + b'\0' * 0x0C
+        return b'0GTC' + ver + size + b'\0' * 0x2C + crc + b'\0' * 0x0C
 
     def __init__(self, data: bytes, motion=False, lang: str = "en"):
         # Ghost data in Mario Kart 8 Deluxe follows a Little-Endian format

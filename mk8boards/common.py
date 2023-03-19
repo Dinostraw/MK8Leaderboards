@@ -174,6 +174,17 @@ class BoosterTracks(_Tracks):
     TOUR_MERRY_MOUNTAIN = (97, "Tour Merry Mountain", "bMM")
     MK7_RAINBOW_ROAD = (98, "3DS Rainbow Road", "bRR")
 
+    # Wave 4 Tracks
+    TOUR_AMSTERDAM_DRIFT = (99, "Tour Amsterdam Drift", "bAD")
+    GBA_RIVERSIDE_PARK = (100, "GBA Riverside Park", "bRP")
+    WII_DK_SUMMIT = (101, "Wii DK Summit", "bDKS")
+    YOSHI_ISLAND = (102, "Yoshi's Island", "bYI")
+
+    TOUR_BANGKOK_RUSH = (103, "Tour Bangkok Rush", "bBR")
+    DS_MARIO_CIRCUIT = (104, "DS Mario Circuit", "bMC")
+    GCN_WALUIGI_STADIUM = (105, "GCN Waluigi Stadium", "bWS")
+    TOUR_SINGAPORE_SPEEDWAY = (106, "Tour Singapore Speedway", "bSSy")
+
 
 class _Cups(Enum):
     # https://stackoverflow.com/a/43210118
@@ -191,7 +202,7 @@ class _Cups(Enum):
         self.track3 = track3
 
 
-# Found across both version of the game; each cup has 4 predefined courses
+# Found across both versions of the game; each cup has 4 predefined courses
 class MK8Cups(_Cups):
     # Nitro Cups
     MUSHROOM = (MK8Tracks.MARIO_KART_STADIUM, MK8Tracks.WATER_PARK,
@@ -244,6 +255,12 @@ class BoosterCups(_Cups):
     MOON = (BoosterTracks.TOUR_BERLIN_BYWAYS, BoosterTracks.DS_PEACH_GARDENS,
             BoosterTracks.TOUR_MERRY_MOUNTAIN, BoosterTracks.MK7_RAINBOW_ROAD)
 
+    # Wave 4 Cups
+    FRUIT = (BoosterTracks.TOUR_AMSTERDAM_DRIFT, BoosterTracks.GBA_RIVERSIDE_PARK,
+             BoosterTracks.WII_DK_SUMMIT, BoosterTracks.YOSHI_ISLAND)
+    BOOMERANG = (BoosterTracks.TOUR_BANGKOK_RUSH, BoosterTracks.DS_MARIO_CIRCUIT,
+                 BoosterTracks.GCN_WALUIGI_STADIUM, BoosterTracks.TOUR_SINGAPORE_SPEEDWAY)
+
 
 class Characters(IntEnum):
     MARIO = 0x00
@@ -294,6 +311,7 @@ class Characters(IntEnum):
     INKLING_GIRL = 0x29
     INKLING_BOY = 0x2A
     CHAMPION_LINK = 0x2B
+    BIRDO = 0x2C
 
 
 class MK8VehicleBodies(IntEnum):
@@ -441,3 +459,15 @@ class Weekdays(IntEnum):
     THURSDAY = 4
     FRIDAY = 5
     SATURDAY = 6
+
+
+class WeightClass(IntEnum):
+    LIGHT = 0
+    MEDIUM = 1
+    HEAVY = 2
+
+
+class Teams(IntEnum):
+    RED = 0
+    BLUE = 1
+    SOLO = 2

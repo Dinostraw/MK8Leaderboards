@@ -275,9 +275,11 @@
   "N64_CHOCO_MOUNTAIN": [
     "bCMo",
     "bCMt",
+    "bCMn",
     "bCM64",
     "CMo",
     "CMt",
+    "CMn",
     "CM64",
     "64CM",
     "N64CM",
@@ -374,5 +376,37 @@
     "bRR",
     "bRR7",
     "RR7"
+  ],
+  "TOUR_AMSTERDAM_DRIFT": [
+    "bAD",
+    "AD"
+  ],
+  "GBA_RIVERSIDE_PARK": [
+    "bRP",
+    "RP"
+  ],
+  "WII_DK_SUMMIT": [
+    "bDKS",
+    "DKS",
+    "DKSC",
+    "スノボ"
+  ],
+  "YOSHI_ISLAND": [
+    "bYI",
+    "YI"
+  ],
+  "TOUR_BANGKOK_RUSH": [
+    "bBR",
+    "BR"
+  ],
+  "DS_MARIO_CIRCUIT": [
+    "bMC"
+  ],
+  "GCN_WALUIGI_STADIUM": [
+    "bWS"
+  ],
+  "TOUR_SINGAPORE_SPEEDWAY": [
+    "bSSy",
+    "SSy"
   ]
 }

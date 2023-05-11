@@ -1,6 +1,6 @@
 anyio>=3.6.1
-Nintendo>=0.0.0
-anynet>=0.0.14
+nintendoclients>=0.0.5
+anynet>=0.0.18
 discord.py>=1.7.3
 matplotlib>=3.5.2
 pandas>=1.4.2

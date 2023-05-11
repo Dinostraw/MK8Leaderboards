@@ -5,6 +5,7 @@ import os
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+from nintendo.nex.common import RMCError
 from nintendo.nex.ranking import RankingClient, RankingRankData
 
 from mk8boards.common import MK8Cups, MK8Tracks
@@ -103,9 +104,12 @@ class Commands(commands.Cog):
                     for x in range(16)
                 )
                 embed.add_field(name=cat, value=f"```{rows}```", inline=False)
-        except RuntimeError:
+        except (RMCError, RuntimeError) as e:
             embed.title = f"Failed to generate a matchup between {nnid1} and {nnid2}:"
-            embed.description = "Failed to fetch both timesheets; connection timed out."
+            if e.__class__ is RMCError:
+                self.handle_rmcerror(e, embed)
+            else:
+                embed.description = "Failed to fetch both timesheets; connection timed out."
         finally:
             await message.edit(embed=embed)
 
@@ -120,19 +124,24 @@ class Commands(commands.Cog):
     async def _aggregate_stats(self):
         embed = discord.Embed()
         tracks = [track for track in MK8Tracks]
-        embed.title = "Stats for all tracks:"
-        async with self.bot.mk8_client.backend_login() as bc:
-            rc = RankingClient(bc)
-            result = await get_stats(rc, tracks)
-        total_records = sum(stat.num_records for stat in result.values())
-        aggregate_time = sum(stat.sum_of_times for stat in result.values())
-        worst_time = max(stat.worst_time for stat in result.values())
-        average_time = sum(stat.average_time * stat.num_records / total_records
-                           for stat in result.values())
-        embed.add_field(name="Total Times", value=total_records)
-        embed.add_field(name="Average Time", value=ts.format_time(average_time))
-        embed.add_field(name="Sum of Uploaded Times", value=format_total_time(aggregate_time))
-        embed.add_field(name="Slowest Time", value=ts.format_time(worst_time))
+        try:
+            async with self.bot.mk8_client.backend_login() as bc:
+                rc = RankingClient(bc)
+                result = await get_stats(rc, tracks)
+        except RMCError as e:
+            embed.title = f"Failed to fetch stats for all tracks:"
+            self.handle_rmcerror(e, embed)
+        else:
+            embed.title = "Stats for all tracks:"
+            total_records = sum(stat.num_records for stat in result.values())
+            aggregate_time = sum(stat.sum_of_times for stat in result.values())
+            worst_time = max(stat.worst_time for stat in result.values())
+            average_time = sum(stat.average_time * stat.num_records / total_records
+                               for stat in result.values())
+            embed.add_field(name="Total Times", value=total_records)
+            embed.add_field(name="Average Time", value=ts.format_time(average_time))
+            embed.add_field(name="Sum of Uploaded Times", value=format_total_time(aggregate_time))
+            embed.add_field(name="Slowest Time", value=ts.format_time(worst_time))
         return embed
 
     async def _individual_stats(self, abbr):
@@ -142,11 +151,17 @@ class Commands(commands.Cog):
         except KeyError:
             embed.title = f"The abbreviation {abbr} is not a known track abbreviation"
             embed.description = "Please try again with a more commonly used abbreviation instead"
-        else:
-            embed.title = f"Stats for {track.fullname} ({track.abbr})"
+            return embed
+
+        try:
             async with self.bot.mk8_client.backend_login() as bc:
                 rc = RankingClient(bc)
                 result = (await get_stats(rc, track))[track.abbr]
+        except RMCError as e:
+            embed.title = f"Failed to fetch stats for {track.fullname} ({track.abbr}):"
+            self.handle_rmcerror(e, embed)
+        else:
+            embed.title = f"Stats for {track.fullname} ({track.abbr})"
             embed.add_field(name="Total Times", value=result.num_records)
             embed.add_field(name="Average Time", value=ts.format_time(result.average_time))
             embed.add_field(name="Sum of Uploaded Times", value=format_total_time(result.sum_of_times))
@@ -178,14 +193,22 @@ class Commands(commands.Cog):
 
             embed.set_footer(text="*Note that worldwide positions may be inaccurate due to hacked times and alts.")
 
-        except (KeyError, RuntimeError) as e:
+        except (KeyError, RMCError, RuntimeError) as e:
             embed.title = f"Failed to fetch the timesheet for {nnid}:"
             if e.__class__ is KeyError:
                 embed.description = f"The NNID \"{nnid}\" does not exist."
+            elif e.__class__ is RMCError:
+                self.handle_rmcerror(e, embed)
             else:
                 embed.description = "Connection timed out."
+
         finally:
             await message.edit(embed=embed)
+
+    @staticmethod
+    def handle_rmcerror(error, embed):
+        if error.code() == 0x8068000B:
+            embed.description = "Servers are currently under maintenance."
 
 
 async def main():

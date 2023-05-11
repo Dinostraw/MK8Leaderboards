@@ -147,7 +147,7 @@ class Commands(commands.Cog):
     async def _individual_stats(self, abbr):
         embed = discord.Embed()
         try:
-            track = MK8Tracks(abbr)
+            track = MK8Tracks[abbr]
         except KeyError:
             embed.title = f"The abbreviation {abbr} is not a known track abbreviation"
             embed.description = "Please try again with a more commonly used abbreviation instead"

@@ -13,6 +13,7 @@
   ],
   "THWOMP_RUINS": [
     "TR",
+    "遺跡",
     "いせき",
     "ドッスン"
   ],
@@ -29,7 +30,8 @@
   "TWISTED_MANSION": [
     "TM",
     "ねじれ",
-    "ねじマ"
+    "ねじマ",
+    "ねじマン"
   ],
   "SHY_GUY_FALLS": [
     "SGF",
@@ -50,7 +52,8 @@
   ],
   "ELECTRODROME": [
     "Ed",
-    "エレドリ"
+    "エレドリ",
+    "エレド"
   ],
   "MOUNT_WARIO": [
     "MW",
@@ -68,7 +71,11 @@
     "BDD",
     "骨々",
     "骨骨",
-    "ホネホネ"
+    "ホネホネ",
+    "骨さば",
+    "ホネさば",
+    "骨",
+    "ホネ"
   ],
   "BOWSER_CASTLE": [
     "BC",
@@ -82,12 +89,16 @@
   "WII_MOO_MOO_MEADOWS": [
     "rMMM",
     "MMM",
-    "モモカン"
+    "モモカン",
+    "牛",
+    "うし"
   ],
   "GBA_MARIO_CIRCUIT": [
     "rMC",
     "グバマリサ",
+    "グバマリ",
     "GBAマリサ",
+    "GBAマリ",
     "GBA"
   ],
   "DS_CHEEP_CHEEP_BEACH": [
@@ -111,7 +122,8 @@
     "rDP3",
     "DP3",
     "平野",
-    "へいや"
+    "へいや",
+    "ドナへ"
   ],
   "N64_ROYAL_RACEWAY": [
     "rRRy",
@@ -130,7 +142,8 @@
   ],
   "GCN_SHERBET_LAND": [
     "rSL",
-    "シャベラン"
+    "シャベラン",
+    "シャベ"
   ],
   "MK7_MUSIC_PARK": [
     "rMP",
@@ -160,7 +173,8 @@
     "rGV",
     "GV",
     "火山",
-    "かざん"
+    "かざん",
+    "グラグラ"
   ],
   "N64_RAINBOW_ROAD": [
     "rRRd",
@@ -197,7 +211,7 @@
     "dWGM",
     "WGM",
     "ワリ鉱",
-    "ワリオこう"
+    "ワリこう"
   ],
   "SNES_RAINBOW_ROAD": [
     "dRR",
@@ -247,7 +261,8 @@
     "NBC",
     "dKC",
     "KC",
-    "ネオパ"
+    "ネオパ",
+    "ネオクッパ"
   ],
   "GBA_RIBBON_ROAD": [
     "dRiR",
@@ -262,15 +277,20 @@
   ],
   "BIG_BLUE": [
     "dBB",
-    "BB"
+    "BB",
+    "ビッグブルー"
   ],
   "TOUR_PARIS_PROMENADE": [
     "bPP",
-    "PP"
+    "PP",
+    "パリ",
+    "パリプロ"
   ],
   "MK7_TOAD_CIRCUIT": [
     "bTC",
-    "TC"
+    "TC",
+    "キノサ",
+    "キノサー"
   ],
   "N64_CHOCO_MOUNTAIN": [
     "bCMo",
@@ -283,7 +303,10 @@
     "CM64",
     "64CM",
     "N64CM",
-    "choco"
+    "choco",
+    "チョコ",
+    "チョコ山",
+    "チョコさん"
   ],
   "WII_COCONUT_MALL": [
     "bCMa",
@@ -299,50 +322,66 @@
   ],
   "TOUR_TOKYO_BLUR": [
     "bTB",
-    "TB"
+    "TB",
+    "東京",
+    "とうきょう"
   ],
   "DS_SHROOM_RIDGE": [
     "bSR",
     "SR",
-    "キノリ"
+    "キノリ",
+    "リッジ"
   ],
   "GBA_SKY_GARDEN": [
     "bSG",
-    "SG"
+    "SG",
+    "グバスカ"
   ],
   "TOUR_NINJA_HIDEAWAY": [
     "bNH",
-    "NH"
+    "NH",
+    "ニンニン"
   ],
   "TOUR_NEW_YORK_MINUTE": [
     "bNYM",
-    "NYM"
+    "NYM",
+    "NY",
+    "ニューヨーク"
   ],
   "SNES_MARIO_CIRCUIT_3": [
     "bMC3",
-    "MC3"
+    "MC3",
+    "SNESマリサ",
+    "SFCマリサ"
   ],
   "N64_KALIMARI_DESERT": [
     "bKD",
-    "KD"
+    "KD",
+    "N64カラさば",
+    "64カラさば"
   ],
   "DS_WALUIGI_PINBALL": [
-    "bWP"
+    "bWP",
+    "ワルピン"
   ],
   "TOUR_SYDNEY_SPRINT": [
     "bSS",
-    "SS"
+    "SS",
+    "シドニー"
   ],
   "GBA_SNOW_LAND": [
-    "bSL"
+    "bSL",
+    "スノラン"
   ],
   "WII_MUSHROOM_GORGE": [
     "bMG",
-    "MH"
+    "MH",
+    "キノキャニ"
   ],
   "SKY_HIGH_SUNDAE": [
     "bSHS",
-    "SHS"
+    "SHS",
+    "アイス"
   ],
   "TOUR_LONDON_LOOP": [
     "bLL",
@@ -400,7 +439,8 @@
     "BR"
   ],
   "DS_MARIO_CIRCUIT": [
-    "bMC"
+    "bMC",
+    "DSマリサ"
   ],
   "GCN_WALUIGI_STADIUM": [
     "bWS"

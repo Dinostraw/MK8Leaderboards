@@ -185,6 +185,17 @@ class BoosterTracks(_Tracks):
     GCN_WALUIGI_STADIUM = (105, "GCN Waluigi Stadium", "bWS")
     TOUR_SINGAPORE_SPEEDWAY = (106, "Tour Singapore Speedway", "bSSy")
 
+    # Wave 5 Tracks
+    TOUR_ATHENS_DASH = (107, "Tour Athens Dash", "bAtD")
+    GCN_DAISY_CRUISER = (108, "GCN Daisy Cruiser", "bDC")
+    WII_MOONVIEW_HIGHWAY = (109, "Wii Moonview Highway", "bMH")
+    SQUEAKY_CLEAN_SPRINT = (110, "Squeaky Clean Sprint", "bSCS")
+
+    TOUR_LOS_ANGELES_LAPS = (111, "Tour Los Angeles Laps", "bLAL")
+    GBA_SUNSET_WILDS = (112, "GBA Sunset Wilds", "bSW")
+    WII_KOOPA_CAPE = (113, "Wii Koopa Cape", "bKC")
+    TOUR_VANCOUVER_VELOCITY = (114, "Tour Vancouver Velocity", "bVV")
+
 
 class _Cups(Enum):
     # https://stackoverflow.com/a/43210118
@@ -261,6 +272,12 @@ class BoosterCups(_Cups):
     BOOMERANG = (BoosterTracks.TOUR_BANGKOK_RUSH, BoosterTracks.DS_MARIO_CIRCUIT,
                  BoosterTracks.GCN_WALUIGI_STADIUM, BoosterTracks.TOUR_SINGAPORE_SPEEDWAY)
 
+    # Wave 5 Cups
+    FEATHER = (BoosterTracks.TOUR_ATHENS_DASH, BoosterTracks.GCN_DAISY_CRUISER,
+               BoosterTracks.WII_MOONVIEW_HIGHWAY, BoosterTracks.SQUEAKY_CLEAN_SPRINT)
+    CHERRY = (BoosterTracks.TOUR_LOS_ANGELES_LAPS, BoosterTracks.GBA_SUNSET_WILDS,
+              BoosterTracks.WII_KOOPA_CAPE, BoosterTracks.TOUR_VANCOUVER_VELOCITY)
+
 
 class Characters(IntEnum):
     MARIO = 0x00
@@ -312,6 +329,9 @@ class Characters(IntEnum):
     INKLING_BOY = 0x2A
     CHAMPION_LINK = 0x2B
     BIRDO = 0x2C
+    KAMEK = 0x2D
+    PETEY_PIRANHA = 0x2E
+    WIGGLER = 0x2F
 
 
 class MK8VehicleBodies(IntEnum):

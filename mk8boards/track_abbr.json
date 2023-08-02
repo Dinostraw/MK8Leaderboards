@@ -324,7 +324,8 @@
     "bTB",
     "TB",
     "東京",
-    "とうきょう"
+    "とうきょう",
+    "トーキョー"
   ],
   "DS_SHROOM_RIDGE": [
     "bSR",
@@ -385,36 +386,45 @@
   ],
   "TOUR_LONDON_LOOP": [
     "bLL",
-    "LL"
+    "LL",
+    "ロンドン"
   ],
   "GBA_BOO_LAKE": [
     "bBL",
-    "BL"
+    "BL",
+    "テレサレイク"
   ],
   "MK7_ROCK_ROCK_MOUNTAIN": [
     "bRRM",
     "RRM",
     "bAP",
-    "AP"
+    "AP",
+    "ロクマ"
   ],
   "WII_MAPLE_TREEWAY": [
     "bMT",
-    "MT"
+    "MT",
+    "メイプル"
   ],
   "TOUR_BERLIN_BYWAYS": [
-    "bBB"
+    "bBB",
+    "ベルリン"
   ],
   "DS_PEACH_GARDENS": [
     "bPG",
-    "PG"
+    "PG",
+    "ピチガ"
   ],
   "TOUR_MERRY_MOUNTAIN": [
-    "bMM"
+    "bMM",
+    "メリマ"
   ],
   "MK7_RAINBOW_ROAD": [
     "bRR",
     "bRR7",
-    "RR7"
+    "RR7",
+    "3DS虹",
+    "3DSにじ"
   ],
   "TOUR_AMSTERDAM_DRIFT": [
     "bAD",
@@ -436,17 +446,54 @@
   ],
   "TOUR_BANGKOK_RUSH": [
     "bBR",
-    "BR"
+    "BR",
+    "バンコク"
   ],
   "DS_MARIO_CIRCUIT": [
     "bMC",
     "DSマリサ"
   ],
   "GCN_WALUIGI_STADIUM": [
-    "bWS"
+    "bWS",
+    "ワルスタ"
   ],
   "TOUR_SINGAPORE_SPEEDWAY": [
     "bSSy",
-    "SSy"
+    "SSy",
+    "シンガポール"
+  ],
+  "TOUR_ATHENS_DASH": [
+    "bAtD",
+    "bADh",
+    "AtD",
+    "ADh"
+  ],
+  "GCN_DAISY_CRUISER": [
+    "bDC",
+    "DC"
+  ],
+  "WII_MOONVIEW_HIGHWAY": [
+    "bMH",
+    "MH"
+  ],
+  "SQUEAKY_CLEAN_SPRINT": [
+    "bSCS",
+    "SCS"
+  ],
+  "TOUR_LOS_ANGELES_LAPS": [
+    "bLAL",
+    "LAL",
+    "LA"
+  ],
+  "GBA_SUNSET_WILDS": [
+    "bSW",
+    "SW"
+  ],
+  "WII_KOOPA_CAPE": [
+    "bKC"
+  ],
+  "TOUR_VANCOUVER_VELOCITY": [
+    "bVV",
+    "VV"
   ]
 }

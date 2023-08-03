@@ -3,7 +3,7 @@ from contextlib import suppress
 from dataclasses import dataclass, field
 from typing import Dict, List, Union
 
-from nintendo.nex import common
+from nintendo.nex.common import RMCError
 from nintendo.nex.ranking import (RankingClient, RankingMode, RankingOrderCalc,
                                   RankingOrderParam, RankingRankData)
 from nintendo.nnas import NNASClient, NNASError
@@ -18,11 +18,6 @@ class Timesheet:
     nnid: str = ""
     mii_name: str = ""
     records: Dict[str, RankingRankData] = field(default_factory=dict)
-
-    # Convenient wrapper for module-level function
-    @staticmethod
-    def format_time(score: Union[int, float]) -> str:
-        return format_time(score)
 
     def to_string_array(self) -> List[str]:
         time_strings = []
@@ -74,7 +69,7 @@ async def get_time(pid: int, track_id: int, ranking_client: RankingClient,
         time = (await ranking_client.get_ranking(
             RankingMode.SELF, track_id, order_param, 0, pid
         )).data[0]
-    except common.RMCError:
+    except RMCError:
         time = None
     return time
 
@@ -83,7 +78,7 @@ async def get_times(pids: List[int], track_id: int, ranking_client: RankingClien
                     order_param: RankingOrderParam) -> Dict[int, RankingRankData]:
     # Initializes each time to None in case no times are found
     times = dict.fromkeys(pids, None)
-    with suppress(common.RMCError):
+    with suppress(RMCError):
         records = (await ranking_client.get_ranking_by_pid_list(
             pids, RankingMode.GLOBAL, track_id, order_param, 0
         ))

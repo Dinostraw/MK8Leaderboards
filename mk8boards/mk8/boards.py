@@ -29,11 +29,11 @@ def filter_boards(boards: RankingResult, hacked: bool = True, banned: bool = Tru
     data = boards.data
     tid = boards.data[0].category
     if hacked:
-        data = list(filter(lambda x: x.pid not in _hacked, data))
-        data = list(filter(lambda x: tid not in _blacklist[x.pid] if x.pid in _blacklist else True, data))
+        data = (x for x in data if x.pid not in _hacked)
+        data = (x for x in data if x.pid not in _blacklist or tid not in _blacklist[x.pid])
 
     if banned:
-        data = list(filter(lambda x: x.pid not in _banned, data))
+        data = (x for x in data if x.pid not in _banned)
 
     if alts:
         alts_set = set()
@@ -46,8 +46,9 @@ def filter_boards(boards: RankingResult, hacked: bool = True, banned: bool = Tru
                 main_pid = _alts[x.pid].alts[0]
                 alts_set.add(main_pid)
                 alts_set.update([pid for pid in _alts[main_pid].alts if x.pid != pid])
-        data = list(filter(lambda x: x.pid not in alts_set, data))
+        data = (x for x in data if x.pid not in alts_set)
 
+    data = list(data)
     if reindex and (hacked or banned or alts) and len(data) > 0:
         data[0].rank = 1
         if len(data) > 1:

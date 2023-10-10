@@ -25,7 +25,7 @@ SYSTEM_VERSION = int(os.getenv("SYSTEM_VERSION"), base=16)
 USERNAME = os.getenv("NNID_USERNAME")
 PASSWORD = os.getenv("PASSWORD")
 # Region and Language Information
-COUNTRY_ID = int(os.getenv("REGION_ID"))
+COUNTRY_ID = int(os.getenv("COUNTRY_ID"))
 COUNTRY_NAME = os.getenv("COUNTRY_NAME")
 REGION_ID = int(os.getenv("REGION_ID"))
 REGION_NAME = os.getenv("REGION_NAME")

@@ -495,5 +495,39 @@
   "TOUR_VANCOUVER_VELOCITY": [
     "bVV",
     "VV"
+  ],
+  "TOUR_ROME_AVANTI": [
+    "bRA",
+    "RA"
+  ],
+  "GCN_DK_MOUNTAIN": [
+    "bDKM",
+    "DKM"
+  ],
+  "WII_DAISY_CIRCUIT": [
+    "bDCt",
+    "DCt"
+  ],
+  "TOUR_PIRANHA_PLANT_COVE": [
+    "bPPC",
+    "PPC"
+  ],
+  "TOUR_MADRID_DRIVE": [
+    "bMD",
+    "MD"
+  ],
+  "MK7_ROSALINA_ICE_WORLD": [
+    "bRIW",
+    "RIW"
+  ],
+  "SNES_BOWSER_CASTLE_3": [
+    "bBC3",
+    "BC3"
+  ],
+  "WII_RAINBOW_ROAD": [
+    "bRRw",
+    "RRw",
+    "RRWii",
+    "WiiRR"
   ]
 }

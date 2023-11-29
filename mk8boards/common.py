@@ -17,7 +17,7 @@ class MK8GameInfo:
     TITLE_ID_EUR = 0x000500001010ED00
     TITLE_ID_USA = 0x000500001010EC00
     TITLE_ID_JAP = 0x000500001010EB00
-    LATEST_VERSION = 128
+    LATEST_VERSION = 128  # 4.2 (RCE patch)
 
     GAME_SERVER_ID = 0x1010EB00
     ACCESS_KEY = "25dbf96a"
@@ -196,6 +196,17 @@ class BoosterTracks(_Tracks):
     WII_KOOPA_CAPE = (113, "Wii Koopa Cape", "bKC")
     TOUR_VANCOUVER_VELOCITY = (114, "Tour Vancouver Velocity", "bVV")
 
+    # Wave 6 Tracks
+    TOUR_ROME_AVANTI = (115, "Tour Rome Avanti", "bRA")
+    GCN_DK_MOUNTAIN = (116, "GCN DK Mountain", "bDKM")
+    WII_DAISY_CIRCUIT = (117, "Wii Daisy Circuit", "bDCt")
+    TOUR_PIRANHA_PLANT_COVE = (118, "Tour Piranha Plant Cove", "bPPC")
+
+    TOUR_MADRID_DRIVE = (119, "Tour Madrid Drive", "bMD")
+    MK7_ROSALINA_ICE_WORLD = (120, "3DS Rosalina's Ice World", "bRIW")
+    SNES_BOWSER_CASTLE_3 = (121, "SNES Bowser Castle 3", "bBC3")
+    WII_RAINBOW_ROAD = (122, "Wii Rainbow Road", "bRRw")
+
 
 class _Cups(Enum):
     # https://stackoverflow.com/a/43210118
@@ -278,6 +289,12 @@ class BoosterCups(_Cups):
     CHERRY = (BoosterTracks.TOUR_LOS_ANGELES_LAPS, BoosterTracks.GBA_SUNSET_WILDS,
               BoosterTracks.WII_KOOPA_CAPE, BoosterTracks.TOUR_VANCOUVER_VELOCITY)
 
+    # Wave 6 Cups
+    ACORN = (BoosterTracks.TOUR_ROME_AVANTI, BoosterTracks.GCN_DK_MOUNTAIN,
+             BoosterTracks.WII_DAISY_CIRCUIT, BoosterTracks.TOUR_PIRANHA_PLANT_COVE)
+    SPINY = (BoosterTracks.TOUR_MADRID_DRIVE, BoosterTracks.MK7_ROSALINA_ICE_WORLD,
+             BoosterTracks.SNES_BOWSER_CASTLE_3, BoosterTracks.WII_RAINBOW_ROAD)
+
 
 class Characters(IntEnum):
     MARIO = 0x00
@@ -332,6 +349,11 @@ class Characters(IntEnum):
     KAMEK = 0x2D
     PETEY_PIRANHA = 0x2E
     WIGGLER = 0x2F
+    DIDDY_KONG = 0x30
+    FUNKY_KONG = 0x31
+    PEACHETTE = 0x32
+    PAULINE = 0x33
+    MII2 = 0x34
 
 
 class MK8VehicleBodies(IntEnum):

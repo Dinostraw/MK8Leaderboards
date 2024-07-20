@@ -59,7 +59,7 @@ class MK8DXGhostInfo:
         size = int.to_bytes(len(self.data) + 0x48, 4, "little")
         crc = crc32(self.data).to_bytes(4, "little")
 
-        return b'0GTC' + ver + size + b'\0' * 0x2C + crc + b'\0' * 0x0C
+        return b'0GTC' + ver + size + (b'\0' * 0x2C) + crc + (b'\0' * 0x0C)
 
     def __init__(self, data: bytes, motion=False, lang: str = "en"):
         # Ghost data in Mario Kart 8 Deluxe follows a Little-Endian format

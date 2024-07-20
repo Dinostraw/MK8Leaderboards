@@ -24,9 +24,9 @@ class Timesheet:
         for track, rankdata in self.records.items():
             try:
                 ts = format_time(rankdata.score)
-                time_strings.append("%-4s    %7i    %s" % (track, rankdata.rank, ts))
+                time_strings.append(f'{track:<4s}    {rankdata.rank:7}    {ts}')
             except AttributeError:
-                time_strings.append("%-4s    -------    -:--.---" % track)
+                time_strings.append(f'{track:<4s}    -------    -:--.---')
         return time_strings
 
 

@@ -30,7 +30,7 @@ class MK8PlayerInfo:
 
 class MK8GhostInfo:
     _engine_classes = ("50cc", "100cc", "150cc", "200cc")
-    _versions = {b'\x00\x00': "1.0", b'\x00\x01': "2.0", b'\x00\x02': "3.0", b'\x08\x00': "4.0 / 4.1"}
+    _versions = {b'\x00\x00': "1.0", b'\x00\x01': "2.0", b'\x00\x02': "3.0", b'\x08\x00': "4.0 / 4.1 / 4.2"}
 
     def generate_filename(self, prefix: Literal['dg', 'gs', 'sg'] = 'dg') -> str:
         # Based on the information gathered in this forum post:
@@ -66,18 +66,22 @@ class MK8GhostInfo:
 
         return header + combo + endtime + splits_pt1 + name + country + motion + splits_pt2 + ".dat"
 
-    def generate_header(self, version: str = "4.1") -> bytes:
-        if version == "4.1":
+    def generate_header(self, version: str = '4.2') -> bytes:
+        if version == '4.2' or version == '4.1':
             ver = b'\x04\x01\x00\x04'
-        elif version == "3.0":
+        elif version == '4.0':
+            ver = b'\x04\x00\x00\x03'
+        elif version == '3.0':
             ver = b'\x03\x00\x00\x02'
+        elif version == '2.0':
+            ver = b'\x02\x00\x00\x01'
         else:
             ver = b'\x00\x10\x00\x10'
 
         size = int.to_bytes(len(self.data) + 0x48, 4, "big")
         crc = crc32(self.data).to_bytes(4, "big")
 
-        return b'CTG0' + ver + size + b'\0' * 0x2C + crc + b'\0' * 0x0C
+        return b'CTG0' + ver + size + (b'\0' * 0x2C) + crc + (b'\0' * 0x0C)
 
     def __init__(self, data: bytes, motion=False, lang: str = "en"):
         # Ghost data in Mario Kart 8 for the most part is formatted as Big-Endian

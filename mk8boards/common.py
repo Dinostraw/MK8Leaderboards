@@ -138,6 +138,11 @@ class MK8Tracks(_Tracks):
     SUPER_BELL_SUBWAY = (48, "Super Bell Subway", "dSBS")
     BIG_BLUE = (63, "Big Blue", "dBB")
 
+    # Variants: these tracks are inaccessible in Time Trials
+    # ANIMAL_CROSSING_SPRING = (64, "Animal Crossing: Spring", "dACs")
+    # ANIMAL_CROSSING_AUTUMN = (65, "Animal Crossing: Autumn", "dACa")
+    # ANIMAL_CROSSING_WINTER = (66, "Animal Crossing: Winter", "dACw")
+
 
 # Booster DLC Track IDs: https://github.com/Dinostraw/MK8Leaderboards/wiki/Booster-Track-IDs
 class BoosterTracks(_Tracks):

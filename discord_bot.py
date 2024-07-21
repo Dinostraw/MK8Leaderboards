@@ -1,16 +1,23 @@
 import asyncio
+import calendar
+import io
 import logging
 import os
 
 import discord
+from anynet import http
 from discord.ext import commands
 from dotenv import load_dotenv
+from nintendo.nex import datastore
 from nintendo.nex.common import RMCError
-from nintendo.nex.ranking import RankingClient, RankingRankData
+from nintendo.nex.ranking import RankingClient, RankingRankData, RankingOrderParam, RankingOrderCalc, RankingMode
+from nintendo.nnas import NNASError
 
 from mk8boards.common import MK8Cups, MK8Tracks
 from mk8boards.mk8 import timesheet as ts
 from mk8boards.mk8.boards_client import MK8Client
+from mk8boards.mk8.structures import MK8PlayerInfo, MK8GhostInfo
+from mk8boards.mk8.timesheet import format_time
 from mk8boards.mk8.track_stats import get_stats, format_total_time
 
 logging.basicConfig(level=logging.WARNING)
@@ -196,7 +203,7 @@ class Commands(commands.Cog):
         except (KeyError, RMCError, RuntimeError) as e:
             embed.title = f"Failed to fetch the timesheet for {nnid}:"
             if e.__class__ is KeyError:
-                embed.description = f"The NNID \"{nnid}\" does not exist."
+                embed.description = f'The NNID "{nnid}" does not exist.'
             elif e.__class__ is RMCError:
                 self.handle_rmcerror(e, embed)
             else:
@@ -204,6 +211,121 @@ class Commands(commands.Cog):
 
         finally:
             await message.edit(embed=embed)
+
+    @commands.hybrid_command(description="Gets the ghost for the player with the given NNID on the given track")
+    async def ghost(self, ctx, abbr, nnid):
+        embed = discord.Embed()
+        embed.title = f"Fetching ghost for {nnid} on {abbr}..."
+        embed.description = "Please wait..."
+        try:
+            track = MK8Tracks[abbr]
+        except KeyError:
+            embed.title = f"Failed to fetch the ghost for {nnid} on {abbr}:"
+            embed.description = (f"The abbreviation {abbr} is not a known track abbreviation; "
+                                 f"please try again with a more commonly used abbreviation instead")
+            await ctx.reply(embed=embed)
+            return
+
+        try:
+            pid = await self.bot.mk8_client.nnas.get_pid(nnid)
+        except KeyError:
+            embed.title = f"Failed to fetch the ghost for {nnid} on {track.fullname} ({track.abbr}):"
+            embed.description = f'The NNID "{nnid}" does not exist'
+            await ctx.reply(embed=embed)
+            return
+
+        embed.title = f"Fetching ghost for {nnid} on {abbr}..."
+        embed.description = "Please wait..."
+        message = await ctx.reply(embed=embed)
+
+        try:
+            rankdata, response = await self._get_ghost(track, pid)
+        except RMCError:
+            embed.title = f"Failed to fetch the ghost for {nnid} on {track.fullname} ({track.abbr}):"
+            embed.description = f'The NNID "{nnid}" has never set a time on this track'
+            await message.edit(embed=embed)
+            return
+
+        mii_name = MK8PlayerInfo(rankdata.common_data).mii.mii_name
+        try:
+            lb_name = (await self.bot.mk8_client.nnas.get_mii(pid)).name
+        except NNASError:
+            lb_name = mii_name
+        if response.error():
+            embed.title = f"Failed to fetch the ghost for {nnid} on {track.fullname} ({track.abbr}):"
+            embed.description = f"The NNID '{nnid}' has never set a time on"
+            await message.edit(embed=embed)
+        else:
+            motion_raw = rankdata.groups[0]
+            motion = bool(motion_raw)
+            info = MK8GhostInfo(response.body, motion=motion)
+            embed.title = (f"Ghost for {lb_name} ({nnid})\n"
+                           f"on {track.fullname} ({track.abbr}):")
+            embed.description = "Summary of the ghost data"
+
+            embed.add_field(name='Time', value=format_time(rankdata.score))
+            embed.add_field(name='Motion Controls', value=motion)
+            embed.add_field(name='Mii Name', value=mii_name)
+            embed.add_field(name='Rank', value=rankdata.rank)
+            embed.add_field(name='', value='', inline=False)
+
+            upload_timestamp = response.headers["Last-Modified"]
+            embed.add_field(name='Uploaded', value=f'{upload_timestamp[:16]}\n{upload_timestamp[18:]}')
+            embed.add_field(name='Set', value=f'{str(info.weekday.name[:3]).title()}, {info.day:02d} '
+                                              f'{calendar.month_abbr[info.month]} {info.year}\n'
+                                              f'{info.hour:02d}:{info.min:02d}:{info.sec:02d}')
+            embed.add_field(name='', value='', inline=False)
+
+            for i, lap in enumerate(info.lap_times, start=1):
+                embed.add_field(name=f'Lap {i}', value=lap)
+            embed.add_field(name='', value='', inline=False)
+
+            embed.add_field(name='Character', value=str(info.character.name).replace('_', ' ').title())
+            embed.add_field(name='Vehicle', value=str(info.vehicle_body.name).replace('_', ' ').title())
+            embed.add_field(name='Tires', value=str(info.tire.name).replace('_', ' ').title())
+            embed.add_field(name='Glider', value=str(info.glider.name).replace('_', ' ').title())
+
+            mins = info.data[0x36D]
+            secs = info.data[0x36E]
+            ms = int.from_bytes(info.data[0x370:0x372], 'big')
+            ghost_time = (60000 * mins) + (1000 * secs) + ms
+
+            packet = bytearray(f'{response.version} {response.status_code} {response.status_name}'.encode('utf-8')
+                               + b'\r\n')
+            for header, value in response.headers.items():
+                packet.extend(f'{header}: {value}\r\n'.encode('utf-8'))
+            packet.extend(f'Custom-Info: PID={pid} Motion={motion}\r\n'.encode('utf-8'))
+            packet.extend(b'\r\n')
+            packet.extend(info.data)
+
+            pkt = discord.File(io.BytesIO(packet), f'{pid} {ghost_time:06d} {motion_raw}.bin')
+            dg = discord.File(io.BytesIO(info.generate_header() + info.data), info.generate_filename('dg'))
+            await message.edit(embed=embed, attachments=[dg, pkt])
+
+    async def _get_ghost(self, track, pid):
+        order_param = RankingOrderParam()
+        order_param.order_calc = RankingOrderCalc.STANDARD
+        order_param.offset = 0
+        order_param.count = 1
+
+        async with self.bot.mk8_client.backend_login() as bc:
+            rankings = await RankingClient(bc).get_ranking(RankingMode.SELF, track.value,
+                                                           order_param, 0, pid)
+            rankdata = rankings.data[0]
+
+            store = datastore.DataStoreClient(bc)
+
+            get_param = datastore.DataStorePrepareGetParam()
+            get_param.persistence_target.owner_id = pid
+            get_param.persistence_target.persistence_id = track - 16
+            get_param.extra_data = ["WUP", str(REGION_ID), REGION_NAME,
+                                    str(COUNTRY_ID), COUNTRY_NAME, ""]
+
+            req_info = await store.prepare_get_object(get_param)
+            headers = {header.key: header.value for header in req_info.headers}
+            response = await http.get(req_info.url, headers=headers)
+
+            return rankdata, response
 
     @staticmethod
     def handle_rmcerror(error, embed):

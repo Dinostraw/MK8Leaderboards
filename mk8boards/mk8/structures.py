@@ -35,7 +35,7 @@ class MK8GhostInfo:
     _engine_classes = ("50cc", "100cc", "150cc", "200cc")
     _versions = {b'\x00\x00': "1.0", b'\x00\x01': "2.0", b'\x00\x02': "3.0", b'\x08\x00': "4.0 / 4.1 / 4.2"}
 
-    def generate_filename(self, prefix: Literal['dg', 'gs', 'sg'] = 'dg') -> str:
+    def generate_filename(self, prefix: Literal['dg', 'gs', 'sg'] = 'dg', slot: int = 0) -> str:
         # Based on the information gathered in this forum post:
         # https://gbatemp.net/threads/post-your-wiiu-cheat-codes-here.395443/post-8640417
 
@@ -46,7 +46,7 @@ class MK8GhostInfo:
 
         if prefix == 'dg':
             # The 00 can be anything from 00 to 0f inclusive
-            header = f"{prefix}00{self.track:02x}"
+            header = f"{prefix}{slot:02x}{self.track:02x}"
         else:
             header = f"{prefix}{self.track-0x10:02x}{self.track:02x}"
 

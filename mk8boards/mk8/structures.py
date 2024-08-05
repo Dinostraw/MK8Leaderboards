@@ -1,6 +1,7 @@
 import calendar
 from binascii import crc32
 from typing import Literal
+from uuid import UUID
 
 from mk8boards import common
 from mk8boards.common import InvalidGhostFormat, MK8TimeTuple
@@ -23,6 +24,8 @@ class MK8PlayerInfo:
         self.subregion_id = common_data[0x75]
         subregion_data = CountryMap.get_subregion(self.country_id, self.subregion_id)
         self.subregion = subregion_data.names[lang]
+
+        self.profile_id = UUID(bytes=common_data[0xC4:0xD4])
 
     def __str__(self):
         return ''.join(f"{k}: {v}\n" for k, v in self.__dict__.items())

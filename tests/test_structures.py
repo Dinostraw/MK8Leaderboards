@@ -160,6 +160,9 @@ class StructureTest(unittest.TestCase):
             self.assertEqual(f'dg{x:02x}{filename_common}', self.ghost_stub.generate_filename('dg', slot=x))
         self.assertEqual(f'sg2f{filename_common}', self.ghost_stub.generate_filename('sg'))
 
+        self.ghost_stub.motion = True
+        self.assertTrue(self.ghost_stub.generate_filename('dg')[96:98] == '01')
+
 
 class Structure8DXTest(unittest.TestCase):
     def setUp(self) -> None:

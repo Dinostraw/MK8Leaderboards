@@ -116,7 +116,7 @@ class MK8DXGhostInfo:
         # Player Name
         self.player_name_bytes = self.data[0x300:0x314]
         # Strip everything after the null character if one occurs
-        self.player_name = self.player_name_bytes.decode("utf_16").split("\0", 1)[0]
+        self.player_name = self.player_name_bytes.decode("utf-16-le").split("\0", 1)[0]
 
         # Total Time and Splits
         self.total_time = MK8TimeTuple(

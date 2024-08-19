@@ -28,13 +28,16 @@ Can be found in the `Samples` folder.
   A timesheet is a complete list of a player's current personal records across all courses in the game.
 
 ### Requirements
-Can be found in `requirements.txt`.
+Can be found in `pyproject.toml`.
 - **Core Requirements** (required):
   - Python 3.8 or higher
   - anyio
   - anynet
-  - discord.py
   - nintendoclients
+
+
+- **Discord Bot Requirements** (only necessary for the Discord bot and some sample scripts):
+  - discord.py
   - python-dotenv
 
 

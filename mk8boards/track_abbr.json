@@ -65,7 +65,9 @@
   ],
   "CLOUDTOP_CRUISE": [
     "CC",
-    "スカガ"
+    "スカガ",
+    "新スカガ",
+    "しんスカガ"
   ],
   "BONE_DRY_DUNES": [
     "BDD",
@@ -116,7 +118,11 @@
     "rDDD",
     "カラカラ",
     "さばく",
-    "カラさば"
+    "カラさば",
+    "GCカラカラ",
+    "GCNカラカラ",
+    "GCカラさば",
+    "GCNカラさば"
   ],
   "SNES_DONUT_PLAINS_3": [
     "rDP3",
@@ -181,10 +187,10 @@
     "RRd",
     "N64RR",
     "64RR",
-    "N64虹",
     "64虹",
-    "N64にじ",
+    "N64虹",
     "64にじ",
+    "N64にじ",
     "旧虹",
     "きゅうにじ"
   ],
@@ -217,10 +223,10 @@
     "dRR",
     "SNESRR",
     "SFCRR",
-    "SNES虹",
     "SFC虹",
-    "SNESにじ",
-    "SFCにじ"
+    "SNES虹",
+    "SFCにじ",
+    "SNESにじ"
   ],
   "ICE_ICE_OUTPOST": [
     "dIIO",
@@ -306,7 +312,8 @@
     "choco",
     "チョコ",
     "チョコ山",
-    "チョコさん"
+    "チョコさん",
+    "チョコマ"
   ],
   "WII_COCONUT_MALL": [
     "bCMa",
@@ -336,7 +343,8 @@
   "GBA_SKY_GARDEN": [
     "bSG",
     "SG",
-    "グバスカ"
+    "グバスカ",
+    "GBAスカガ"
   ],
   "TOUR_NINJA_HIDEAWAY": [
     "bNH",
@@ -352,14 +360,14 @@
   "SNES_MARIO_CIRCUIT_3": [
     "bMC3",
     "MC3",
-    "SNESマリサ",
-    "SFCマリサ"
+    "SFCマリサ",
+    "SNESマリサ"
   ],
   "N64_KALIMARI_DESERT": [
     "bKD",
     "KD",
-    "N64カラさば",
-    "64カラさば"
+    "64カラさば",
+    "N64カラさば"
   ],
   "DS_WALUIGI_PINBALL": [
     "bWP",
@@ -368,6 +376,8 @@
   "TOUR_SYDNEY_SPRINT": [
     "bSS",
     "SS",
+    "bSSt",
+    "SSt",
     "シドニー"
   ],
   "GBA_SNOW_LAND": [
@@ -392,6 +402,7 @@
   "GBA_BOO_LAKE": [
     "bBL",
     "BL",
+    "テレレ",
     "テレサレイク"
   ],
   "MK7_ROCK_ROCK_MOUNTAIN": [
@@ -417,22 +428,29 @@
   ],
   "TOUR_MERRY_MOUNTAIN": [
     "bMM",
-    "メリマ"
+    "メリマ",
+    "メリメリ"
   ],
   "MK7_RAINBOW_ROAD": [
     "bRR",
     "bRR7",
     "RR7",
     "3DS虹",
-    "3DSにじ"
+    "7虹",
+    "3DSにじ",
+    "7にじ"
   ],
   "TOUR_AMSTERDAM_DRIFT": [
     "bAD",
-    "AD"
+    "AD",
+    "bAmD",
+    "AmD",
+    "アムス"
   ],
   "GBA_RIVERSIDE_PARK": [
     "bRP",
-    "RP"
+    "RP",
+    "リバサ"
   ],
   "WII_DK_SUMMIT": [
     "bDKS",
@@ -442,7 +460,8 @@
   ],
   "YOSHI_ISLAND": [
     "bYI",
-    "YI"
+    "YI",
+    "ヨシアイ"
   ],
   "TOUR_BANGKOK_RUSH": [
     "bBR",
@@ -464,70 +483,92 @@
   ],
   "TOUR_ATHENS_DASH": [
     "bAtD",
-    "bADh",
     "AtD",
-    "ADh"
+    "bADh",
+    "ADh",
+    "アテネ"
   ],
   "GCN_DAISY_CRUISER": [
     "bDC",
-    "DC"
+    "DC",
+    "bDCr",
+    "DCr",
+    "デイクル"
   ],
   "WII_MOONVIEW_HIGHWAY": [
     "bMH",
-    "MH"
+    "MH",
+    "ムンリ"
   ],
   "SQUEAKY_CLEAN_SPRINT": [
     "bSCS",
-    "SCS"
+    "SCS",
+    "シャボン"
   ],
   "TOUR_LOS_ANGELES_LAPS": [
     "bLAL",
     "LAL",
-    "LA"
+    "LA",
+    "ロサンゼルス"
   ],
   "GBA_SUNSET_WILDS": [
     "bSW",
-    "SW"
+    "SW",
+    "サンセット"
   ],
   "WII_KOOPA_CAPE": [
-    "bKC"
+    "bKC",
+    "キノみさ"
   ],
   "TOUR_VANCOUVER_VELOCITY": [
     "bVV",
-    "VV"
+    "VV",
+    "バンクーバー"
   ],
   "TOUR_ROME_AVANTI": [
     "bRA",
-    "RA"
+    "RA",
+    "ローマ"
   ],
   "GCN_DK_MOUNTAIN": [
     "bDKM",
-    "DKM"
+    "DKM",
+    "DK山",
+    "DKさん"
   ],
   "WII_DAISY_CIRCUIT": [
     "bDCt",
-    "DCt"
+    "DCt",
+    "デジサ"
   ],
   "TOUR_PIRANHA_PLANT_COVE": [
     "bPPC",
-    "PPC"
+    "PPC",
+    "パク神",
+    "パクしん"
   ],
   "TOUR_MADRID_DRIVE": [
     "bMD",
-    "MD"
+    "MD",
+    "マドリード"
   ],
   "MK7_ROSALINA_ICE_WORLD": [
     "bRIW",
-    "RIW"
+    "RIW",
+    "ロゼプラ"
   ],
   "SNES_BOWSER_CASTLE_3": [
     "bBC3",
-    "BC3"
+    "BC3",
+    "クッパ城",
+    "クッパじょう"
   ],
   "WII_RAINBOW_ROAD": [
     "bRRw",
     "RRw",
     "RRWii",
-    "WiiRR"
+    "WiiRR",
+    "Wii虹",
+    "Wiiにじ"
   ]
 }

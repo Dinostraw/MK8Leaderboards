@@ -17,19 +17,22 @@ logging.basicConfig(level=logging.INFO)
 # Load environment variables
 load_dotenv()
 
-# Device Information
+# --- Device Information ---
 DEVICE_ID = int(os.getenv("DEVICE_ID"), base=16)
+DEVICE_CERT = os.getenv("DEVICE_CERT")  # Optional on Nintendo Network
 SERIAL_NUMBER = os.getenv("SERIAL_NUMBER")
 SYSTEM_VERSION = int(os.getenv("SYSTEM_VERSION"), base=16)
-# Account Information
-USERNAME = os.getenv("NNID_USERNAME")
-PASSWORD = os.getenv("PASSWORD")
-# Region and Language Information
+# --- Region and Language Information ---
 COUNTRY_ID = int(os.getenv("COUNTRY_ID"))
 COUNTRY_NAME = os.getenv("COUNTRY_NAME")
 REGION_ID = int(os.getenv("REGION_ID"))
 REGION_NAME = os.getenv("REGION_NAME")
 LANGUAGE = os.getenv("LANGUAGE")
+# --- Account Information ---
+USERNAME = os.getenv("NNID_USERNAME")
+PASSWORD_HASH = os.getenv("PASSWORD_HASH")
+# --- Server Information ---
+USE_PRETENDO = os.getenv("USE_PRETENDO").lower() == 'true'
 
 # Track IDs: https://github.com/Kinnay/NintendoClients/wiki/Mario-Kart-8-Track-IDs
 TRACK_ID = Tracks.THWOMP_RUINS.value
@@ -79,9 +82,14 @@ async def get_ghost(client: MK8Client, nnid: str) -> GhostResult:
 
 async def main():
     client = MK8Client()
-    client.set_device(DEVICE_ID, SERIAL_NUMBER, SYSTEM_VERSION)
+    client.set_device(DEVICE_ID, SERIAL_NUMBER, SYSTEM_VERSION, DEVICE_CERT)
     client.set_locale(REGION_ID, REGION_NAME, COUNTRY_ID, COUNTRY_NAME, LANGUAGE)
-    await client.login(USERNAME, PASSWORD)
+    if USE_PRETENDO:
+        client.nnas.set_url('account.pretendo.cc')
+        # Reset TLS context to defaults
+        client.nnas.context.set_certificate_chain(None, None)
+        client.nnas.context.set_authority(None)
+    await client.login(USERNAME, PASSWORD_HASH, password_type='hash')
 
     ghost_result = await get_ghost(client, NNID)
     true_nnid = await client.nnas.get_nnid(ghost_result.pid)
@@ -114,8 +122,12 @@ async def main():
           f"{''.join(f'{x:02x}' for x in player_info.mii.to_studio_api())}"
           f"&width=512&type=face")
 
-    os.makedirs("../Output/Ghosts/DL/" + f"{true_nnid}", exist_ok=True)
-    with open("../Output/Ghosts/DL/" + f"{true_nnid}/{filename}", "wb") as f:
+    if USE_PRETENDO:
+        output_dir = f"../Output/Ghosts/Pretendo/DL/{true_nnid}"
+    else:
+        output_dir = f"../Output/Ghosts/DL/{true_nnid}"
+    os.makedirs(output_dir, exist_ok=True)
+    with open(f"{output_dir}/{filename}", "wb") as f:
         f.write(ghost_info.header)
         f.write(ghost_info.data)
 

@@ -68,7 +68,9 @@ async def get_time(pid: int, track_id: int, ranking_client: RankingClient,
     try:
         time = (await ranking_client.get_ranking(
             RankingMode.SELF, track_id, order_param, 0, pid
-        )).data[0]
+        ))
+        # Nintendo throws an exception if nonexistent; Pretendo does not
+        time = time.data[0] if len(time.data) else None
     except RMCError:
         time = None
     return time
@@ -88,10 +90,7 @@ async def get_times(pids: List[int], track_id: int, ranking_client: RankingClien
     return times
 
 
-async def get_timesheet(ranking_client: RankingClient, nnid: str, nnas_client: NNASClient = None) -> Timesheet:
-    if nnas_client is None:
-        nnas_client = NNASClient()
-
+async def get_timesheet(ranking_client: RankingClient, nnid: str, nnas_client: NNASClient) -> Timesheet:
     order_param = RankingOrderParam()
     order_param.order_calc = RankingOrderCalc.STANDARD
     order_param.offset = 0
@@ -118,11 +117,7 @@ async def get_timesheet(ranking_client: RankingClient, nnid: str, nnas_client: N
     return Timesheet(pid, nnid, mii_name, timesheet)
 
 
-async def get_timesheets(ranking_client: RankingClient, nnids: List[str],
-                         nnas_client: NNASClient = None) -> List[Timesheet]:
-    if nnas_client is None:
-        nnas_client = NNASClient()
-
+async def get_timesheets(ranking_client: RankingClient, nnids: List[str], nnas_client: NNASClient) -> List[Timesheet]:
     order_param = RankingOrderParam()
     order_param.order_calc = RankingOrderCalc.STANDARD
     order_param.offset = 0

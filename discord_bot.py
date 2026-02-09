@@ -10,7 +10,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from nintendo.nex import datastore
 from nintendo.nex.common import RMCError
-from nintendo.nex.ranking import RankingClient, RankingRankData, RankingOrderParam, RankingOrderCalc, RankingMode
+from nintendo.nex.ranking import RankingClient, RankingRankData, RankingOrderCalc, RankingOrderParam
 from nintendo.nnas import NNASError
 
 from mk8boards.common import MK8Cups, MK8Tracks
@@ -27,6 +27,7 @@ load_dotenv()
 
 # --- Device Information ---
 DEVICE_ID = int(os.getenv("DEVICE_ID"), base=16)
+DEVICE_CERT = os.getenv("DEVICE_CERT")  # Optional on Nintendo Network
 SERIAL_NUMBER = os.getenv("SERIAL_NUMBER")
 SYSTEM_VERSION = int(os.getenv("SYSTEM_VERSION"), base=16)
 # --- Region and Language Information ---
@@ -37,7 +38,9 @@ REGION_NAME = os.getenv("REGION_NAME")
 LANGUAGE = os.getenv("LANGUAGE")
 # --- Account Information ---
 USERNAME = os.getenv("NNID_USERNAME")
-PASSWORD = os.getenv("PASSWORD")
+PASSWORD_HASH = os.getenv("PASSWORD_HASH")
+# --- Server Information ---
+USE_PRETENDO = os.getenv("USE_PRETENDO").lower() == 'true'
 
 md_escape = {ord('*'): '\\*', ord('_'): '\\_', ord('~'): '\\~',
              ord('`'): '\\`', ord('>'): '\\>', ord('|'): '\\|'}
@@ -59,15 +62,20 @@ class BotBoi(commands.Bot):
         intents.message_content = True
         super().__init__(command_prefix=prefix, intents=intents)
         self.mk8_client = MK8Client()
-        self.mk8_client.set_device(DEVICE_ID, SERIAL_NUMBER, SYSTEM_VERSION)
+        self.mk8_client.set_device(DEVICE_ID, SERIAL_NUMBER, SYSTEM_VERSION, DEVICE_CERT)
         self.mk8_client.set_locale(REGION_ID, REGION_NAME, COUNTRY_ID, COUNTRY_NAME, LANGUAGE)
+        if USE_PRETENDO:
+            self.mk8_client.nnas.set_url('account.pretendo.cc')
+            # Reset TLS context to defaults
+            self.mk8_client.nnas.context.set_certificate_chain(None, None)
+            self.mk8_client.nnas.context.set_authority(None)
 
     async def setup_hook(self):
         await self.add_cog(Commands(self))
 
     async def on_ready(self):
         await self.tree.sync()
-        await self.mk8_client.login(USERNAME, PASSWORD)
+        await self.mk8_client.login(USERNAME, PASSWORD_HASH, password_type='hash')
         print("We up, boys!")
 
 
@@ -84,7 +92,7 @@ class Commands(commands.Cog):
         try:
             async with self.bot.mk8_client.backend_login() as bc:
                 rc = RankingClient(bc)
-                m = ts.get_matchup(*(await ts.get_timesheets(rc, [nnid1, nnid2])))
+                m = ts.get_matchup(*(await ts.get_timesheets(rc, [nnid1, nnid2], self.bot.mk8_client.nnas)))
             p1 = m.p1_timesheet
             p2 = m.p2_timesheet
             embed.title = (f"{p1.mii_name} ({p1.nnid})   vs.   {p2.mii_name} ({p2.nnid})"
@@ -184,7 +192,7 @@ class Commands(commands.Cog):
         try:
             async with self.bot.mk8_client.backend_login() as bc:
                 rc = RankingClient(bc)
-                player_ts = await ts.get_timesheet(rc, nnid)
+                player_ts = await ts.get_timesheet(rc, nnid, self.bot.mk8_client.nnas)
             ts_list = player_ts.to_string_array()
             name = player_ts.mii_name.translate(md_escape)
 
@@ -217,13 +225,15 @@ class Commands(commands.Cog):
         embed = discord.Embed()
         embed.title = f"Fetching ghost for {nnid} on {abbr}..."
         embed.description = "Please wait..."
+        message = await ctx.reply(embed=embed)
+
         try:
             track = MK8Tracks[abbr]
         except KeyError:
             embed.title = f"Failed to fetch the ghost for {nnid} on {abbr}:"
             embed.description = (f"The abbreviation {abbr} is not a known track abbreviation; "
                                  f"please try again with a more commonly used abbreviation instead")
-            await ctx.reply(embed=embed)
+            await message.edit(embed=embed)
             return
 
         try:
@@ -231,16 +241,19 @@ class Commands(commands.Cog):
         except KeyError:
             embed.title = f"Failed to fetch the ghost for {nnid} on {track.fullname} ({track.abbr}):"
             embed.description = f'The NNID "{nnid}" does not exist'
-            await ctx.reply(embed=embed)
+            await message.edit(embed=embed)
             return
 
         embed.title = f"Fetching ghost for {nnid} on {abbr}..."
         embed.description = "Please wait..."
-        message = await ctx.reply(embed=embed)
+        message = await message.edit(embed=embed)
 
         try:
             rankdata, response = await self._get_ghost(track, pid)
         except RMCError:
+            rankdata, response = None, None
+
+        if rankdata is None or response is None:
             embed.title = f"Failed to fetch the ghost for {nnid} on {track.fullname} ({track.abbr}):"
             embed.description = f'The NNID "{nnid}" has never set a time on this track'
             await message.edit(embed=embed)
@@ -309,9 +322,9 @@ class Commands(commands.Cog):
         order_param.count = 1
 
         async with self.bot.mk8_client.backend_login() as bc:
-            rankings = await RankingClient(bc).get_ranking(RankingMode.SELF, track.value,
-                                                           order_param, 0, pid)
-            rankdata = rankings.data[0]
+            rankdata = await ts.get_time(pid, track, RankingClient(bc), order_param)
+            if rankdata is None:
+                return None, None
 
             store = datastore.DataStoreClient(bc)
 
@@ -329,7 +342,9 @@ class Commands(commands.Cog):
 
     @staticmethod
     def handle_rmcerror(error, embed):
-        if error.code() == 0x8068000B:
+        if error.code() == 0x80010002:
+            embed.description = "Servers have not yet implemented this functionality."
+        elif error.code() == 0x8068000B:
             embed.description = "Servers are currently under maintenance."
 
 

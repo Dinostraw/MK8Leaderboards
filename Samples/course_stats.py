@@ -16,6 +16,7 @@ load_dotenv()
 
 # --- Device Information ---
 DEVICE_ID = int(os.getenv("DEVICE_ID"), base=16)
+DEVICE_CERT = os.getenv("DEVICE_CERT")  # Optional on Nintendo Network
 SERIAL_NUMBER = os.getenv("SERIAL_NUMBER")
 SYSTEM_VERSION = int(os.getenv("SYSTEM_VERSION"), base=16)
 # --- Region and Language Information ---
@@ -26,15 +27,22 @@ REGION_NAME = os.getenv("REGION_NAME")
 LANGUAGE = os.getenv("LANGUAGE")
 # --- Account Information ---
 USERNAME = os.getenv("NNID_USERNAME")
-PASSWORD = os.getenv("PASSWORD")
+PASSWORD_HASH = os.getenv("PASSWORD_HASH")
+# --- Server Information ---
+USE_PRETENDO = os.getenv("USE_PRETENDO").lower() == 'true'
 
 
 async def main():
     client = MK8Client()
-    client.set_device(DEVICE_ID, SERIAL_NUMBER, SYSTEM_VERSION)
+    client.set_device(DEVICE_ID, SERIAL_NUMBER, SYSTEM_VERSION, DEVICE_CERT)
     client.set_locale(REGION_ID, REGION_NAME, COUNTRY_ID, COUNTRY_NAME, LANGUAGE)
+    if USE_PRETENDO:
+        client.nnas.set_url('account.pretendo.cc')
+        # Reset TLS context to defaults
+        client.nnas.context.set_certificate_chain(None, None)
+        client.nnas.context.set_authority(None)
 
-    await client.login(USERNAME, PASSWORD)
+    await client.login(USERNAME, PASSWORD_HASH, password_type='hash')
     async with client.backend_login() as bc:
         rc = RankingClient(bc)
         stats = await get_stats(rc, [track for track in Tracks])

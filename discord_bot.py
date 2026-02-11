@@ -3,11 +3,13 @@ import calendar
 import io
 import logging
 import os
+from typing import Type, TypeVar
 
 import discord
 from anynet import http
 from discord.ext import commands
 from dotenv import load_dotenv
+from exceptiongroup import BaseExceptionGroup
 from nintendo.nex import datastore
 from nintendo.nex.common import RMCError
 from nintendo.nex.ranking import RankingClient, RankingRankData, RankingOrderCalc, RankingOrderParam
@@ -45,6 +47,8 @@ USE_PRETENDO = os.getenv("USE_PRETENDO").lower() == 'true'
 md_escape = {ord('*'): '\\*', ord('_'): '\\_', ord('~'): '\\~',
              ord('`'): '\\`', ord('>'): '\\>', ord('|'): '\\|'}
 
+T = TypeVar('T')
+
 
 def mark_faster_time(record1: RankingRankData, record2: RankingRankData):
     if record1 is None:
@@ -53,6 +57,18 @@ def mark_faster_time(record1: RankingRankData, record2: RankingRankData):
         return ts.format_time(record1.score)
     else:
         return "<%s>" % ts.format_time(record1.score)
+
+
+def find_first_leaf(e: BaseException, e_type: Type[T]) -> T:
+    if isinstance(e, e_type):
+        return e
+
+    if isinstance(e, BaseExceptionGroup):
+        for e in e.exceptions:
+            leaf = find_first_leaf(e, e_type)
+            if leaf is not None:
+                return leaf
+    return None
 
 
 class BotBoi(commands.Bot):
@@ -129,23 +145,30 @@ class Commands(commands.Cog):
             await message.edit(embed=embed)
 
     @commands.hybrid_command(description="Gets stats")
-    async def stats(self, ctx, abbr):
+    async def stats(self, ctx, abbr: str):
         if abbr.lower() == "all" or abbr == '*':
-            embed = await self._aggregate_stats()
+            await self._aggregate_stats(ctx)
         else:
-            embed = await self._individual_stats(abbr)
-        await ctx.reply(embed=embed)
+            await self._individual_stats(ctx, abbr)
 
-    async def _aggregate_stats(self):
+    async def _aggregate_stats(self, ctx):
         embed = discord.Embed()
+        embed.title = "Fetching stats for all tracks..."
+        embed.description = "Please wait..."
+        message = await ctx.reply(embed=embed)
+
         tracks = [track for track in MK8Tracks]
         try:
             async with self.bot.mk8_client.backend_login() as bc:
                 rc = RankingClient(bc)
                 result = await get_stats(rc, tracks)
-        except RMCError as e:
+        except (BaseExceptionGroup, RMCError, RuntimeError) as e:
             embed.title = f"Failed to fetch stats for all tracks:"
-            self.handle_rmcerror(e, embed)
+            e = find_first_leaf(e, RMCError)
+            if e is not None:
+                self.handle_rmcerror(e, embed)
+            else:
+                embed.description = "Connection timed out."
         else:
             embed.title = "Stats for all tracks:"
             total_records = sum(stat.num_records for stat in result.values())
@@ -157,31 +180,40 @@ class Commands(commands.Cog):
             embed.add_field(name="Average Time", value=ts.format_time(average_time))
             embed.add_field(name="Sum of Uploaded Times", value=format_total_time(aggregate_time))
             embed.add_field(name="Slowest Time", value=ts.format_time(worst_time))
-        return embed
+        await message.edit(embed=embed)
 
-    async def _individual_stats(self, abbr):
+    async def _individual_stats(self, ctx, abbr: str):
         embed = discord.Embed()
         try:
             track = MK8Tracks[abbr]
         except KeyError:
             embed.title = f"The abbreviation {abbr} is not a known track abbreviation"
             embed.description = "Please try again with a more commonly used abbreviation instead"
-            return embed
+            await ctx.reply(embed=embed)
+            return
+
+        embed.title = f"Fetching stats for for {track.fullname} ({track.abbr})..."
+        embed.description = "Please wait..."
+        message = await ctx.reply(embed=embed)
 
         try:
             async with self.bot.mk8_client.backend_login() as bc:
                 rc = RankingClient(bc)
                 result = (await get_stats(rc, track))[track.abbr]
-        except RMCError as e:
+        except (BaseExceptionGroup, RMCError, RuntimeError) as e:
             embed.title = f"Failed to fetch stats for {track.fullname} ({track.abbr}):"
-            self.handle_rmcerror(e, embed)
+            e = find_first_leaf(e, RMCError)
+            if e is not None:
+                self.handle_rmcerror(e, embed)
+            else:
+                embed.description = "Connection timed out."
         else:
             embed.title = f"Stats for {track.fullname} ({track.abbr})"
             embed.add_field(name="Total Times", value=result.num_records)
             embed.add_field(name="Average Time", value=ts.format_time(result.average_time))
             embed.add_field(name="Sum of Uploaded Times", value=format_total_time(result.sum_of_times))
             embed.add_field(name="Slowest Time", value=ts.format_time(result.worst_time))
-        return embed
+        await message.edit(embed=embed)
 
     @commands.hybrid_command(aliases=["ts"], description="Gets the timesheet for the player with the given NNID")
     async def timesheet(self, ctx, nnid):

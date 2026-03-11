@@ -61,7 +61,7 @@ class MK8DXGhostInfo:
 
         return b'0GTC' + ver + size + (b'\0' * 0x2C) + crc + (b'\0' * 0x0C)
 
-    def __init__(self, data: bytes, motion=False, lang: str = "en"):
+    def __init__(self, data: bytes, motion: bool = False, lang: str = "en"):
         # Ghost data in Mario Kart 8 Deluxe follows a Little-Endian format
         if data[0x0:0x4].decode('utf8') == "0GTC":
             self.data = data[0x48:]

@@ -86,7 +86,7 @@ class MK8GhostInfo:
 
         return b'CTG0' + ver + size + (b'\0' * 0x2C) + crc + (b'\0' * 0x0C)
 
-    def __init__(self, data: bytes, motion=False, lang: str = "en"):
+    def __init__(self, data: bytes, motion: bool = False, lang: str = "en"):
         # Ghost data in Mario Kart 8 for the most part is formatted as Big-Endian
         # The embedded Mii data seems to be formatted as Little-Endian, however
         if data[0x0:0x4].decode('utf8') == "CTG0":

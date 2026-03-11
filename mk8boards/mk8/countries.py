@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 from os import path
-from typing import Dict, Union
+from typing import Any, Dict, Union
 
 
 @dataclass
@@ -39,12 +39,12 @@ class CountryMap:
     _map: Dict[int, Country] = None
 
     @staticmethod
-    def subregion_json_decoder(k, v) -> Subregion:
+    def subregion_json_decoder(k: int, v: Dict[str, Any]) -> Subregion:
         return Subregion(k, v["names"], v["lat"], v["long"])
 
     @staticmethod
-    def country_json_decoder(k, v) -> Country:
-        subregions = {int(k_sub): CountryMap.subregion_json_decoder(k_sub, v_sub)
+    def country_json_decoder(k: int, v: Dict[str, Any]) -> Country:
+        subregions = {int(k_sub): CountryMap.subregion_json_decoder(int(k_sub), v_sub)
                       for k_sub, v_sub in v["subregions"].items()}
         return Country(k, v["names"], v["alpha2"], v["alpha3"], subregions)
 

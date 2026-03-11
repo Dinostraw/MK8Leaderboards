@@ -2,7 +2,7 @@ import contextlib
 from typing import AsyncIterator
 
 from nintendo.nex import backend, settings
-from nintendo.nex.backend import BackEndClient
+from nintendo.nex.rmc import RMCClient
 from nintendo.nnas import NNASClient
 
 from mk8boards.common import MK8GameInfo
@@ -17,7 +17,7 @@ class MK8Client:
         self.nex_token = await self.nnas.get_nex_token(self.access_token.token, MK8GameInfo.GAME_SERVER_ID)
 
     @contextlib.asynccontextmanager
-    async def backend_login(self) -> AsyncIterator[BackEndClient]:
+    async def backend_login(self) -> AsyncIterator[RMCClient]:
         async with backend.connect(self.settings, self.nex_token.host, self.nex_token.port) as be:
             async with be.login(str(self.nex_token.pid), self.nex_token.password) as be_client:
                 yield be_client

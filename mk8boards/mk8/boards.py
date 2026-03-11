@@ -1,14 +1,18 @@
 import asyncio
 import json
 import os
-from collections import ChainMap, namedtuple
-from typing import Iterable, Union
+from typing import ChainMap, Iterable, List, NamedTuple, Union
 
 from nintendo.nex.ranking import RankingClient, RankingMode, RankingOrderCalc
 from nintendo.nex.ranking import RankingOrderParam, RankingResult
 from nintendo.nnas import NNASClient
 
-_AltInfo = namedtuple("_AltInfo", ["main", "alts"])
+
+class _AltInfo(NamedTuple):
+    main: bool
+    alts: List[int]
+
+
 with open(os.path.join(os.path.dirname(__file__), "filters/alts.json"), 'r') as f:
     _alts = {int(main): _AltInfo(True, [int(alt) for alt in alts])
              for main, alts in json.load(f).items()}
@@ -125,7 +129,7 @@ async def get_boards(ranking_client: RankingClient, track_id: int, offset: int, 
     return boards
 
 
-async def get_nnids(nnas_client: NNASClient, pids: Iterable, max_concurrent=32) -> ChainMap:
+async def get_nnids(nnas_client: NNASClient, pids: Iterable, max_concurrent: int = 32) -> ChainMap[int, str]:
     max_amt = 500
     sem = asyncio.Semaphore(max_concurrent)  # Prevent flooding servers
     pids = list(pids)

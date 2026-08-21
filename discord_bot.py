@@ -303,7 +303,7 @@ class Commands(commands.Cog):
         else:
             motion_raw = rankdata.groups[0]
             motion = bool(motion_raw)
-            info = MK8GhostInfo(response.body, motion=motion)
+            info = MK8GhostInfo(response.body)
             embed.title = (f"Ghost for {lb_name} ({nnid})\n"
                            f"on {track.fullname} ({track.abbr}):")
             embed.description = "Summary of the ghost data"

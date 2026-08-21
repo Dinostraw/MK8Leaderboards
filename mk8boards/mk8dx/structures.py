@@ -50,9 +50,9 @@ class MK8DXGhostInfo:
         # Convert each UTF-16 character's byte order from little-endian to big-endian and join them
         name = ''.join(f"{pnb[x+1]:02x}{pnb[x]:02x}" for x in range(0, len(pnb), 2))
         country = ''.join(f'{ord(x):02x}' for x in self.country_id)
-        motion = f"{int(self.motion):02x}0000"
+        motion = f'{self.motion:02x}'
 
-        return header + combo + endtime + splits + name + country + motion + ".dat"
+        return header + combo + endtime + splits + name + country + motion + '0000.dat'
 
     def generate_header(self) -> bytes:
         ver = b'\x00\x00\x00\x00'
@@ -61,9 +61,9 @@ class MK8DXGhostInfo:
 
         return b'0GTC' + ver + size + (b'\0' * 0x2C) + crc + (b'\0' * 0x0C)
 
-    def __init__(self, data: bytes, motion: bool = False, lang: str = "en"):
+    def __init__(self, data: bytes, lang: str = "en"):
         # Ghost data in Mario Kart 8 Deluxe follows a Little-Endian format
-        if data[0x0:0x4].decode('utf8') == "0GTC":
+        if data[0x0:0x4] == b'0GTC':
             self.data = data[0x48:]
             self.header = data[:0x48]
         else:
@@ -74,8 +74,6 @@ class MK8DXGhostInfo:
             raise InvalidGhostFormat(
                 "Ghost not in the proper format: likely not a Mario Kart 8 Deluxe ghost"
             )
-
-        self.motion = motion  # Still being investigated if this exists internally
 
         # Timestamp
         self.year = int.from_bytes(self.data[0x0C:0x10], "little")
@@ -130,13 +128,27 @@ class MK8DXGhostInfo:
         self.lap_times = [MK8TimeTuple(self.data[x], self.data[x+1], int.from_bytes(self.data[x+2:x+4], "little"))
                           for x in lap_offsets]
 
+        # Various Race Flags
+        self.motion = (self.data[0x389] >> 1) & 0b00000011
+
+        # Filename and File Version
+        self.filename_version = self.data[0x390]
+        self.file_version = self.data[0x391]
+
     def __str__(self):
+        if self.motion == 0:
+            motion_kind = 'False'
+        elif self.motion == 1:
+            motion_kind = 'True (Regular)'
+        else:
+            motion_kind = 'True (Gold)'
+
         return (
             f"Track: {self.track.fullname}\n"
             f"Engine Class: {self.engine_class}\n"
             f"Total Time: {self.total_time}\n"
             f"Lap Times: {' | '.join(str(time) for time in self.lap_times)}\n"
-            f"Motion Controls: {self.motion}\n"
+            f"Motion Controls: {motion_kind}\n"
             f"\n"
             f"Name: {self.player_name}\n"
             f"Country: {self.country_id}\n"

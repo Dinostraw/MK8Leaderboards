@@ -65,9 +65,18 @@ class MK8GhostInfo:
 
         name = ''.join(f"{b:02x}" for b in self.player_name_bytes)
         country = f"{self.country_id:02x}"
-        motion = f"{int(self.motion):02x}0000"
+        motion = f'{self.motion:02x}'
 
-        return header + combo + endtime + splits_pt1 + name + country + motion + splits_pt2 + ".dat"
+        if self.filename_version < 0x0A:
+            # 0-9
+            filename_ver = f'{chr(0x30 + self.filename_version)}000'
+        elif self.filename_version < 0x23:
+            # a-y
+            filename_ver = f'{chr(0x57 + self.filename_version)}000'
+        else:
+            filename_ver = 'z000'
+
+        return header + combo + endtime + splits_pt1 + name + country + motion + filename_ver + splits_pt2 + '.dat'
 
     def generate_header(self, version: str = '4.2') -> bytes:
         if version == '4.2' or version == '4.1':
@@ -86,10 +95,10 @@ class MK8GhostInfo:
 
         return b'CTG0' + ver + size + (b'\0' * 0x2C) + crc + (b'\0' * 0x0C)
 
-    def __init__(self, data: bytes, motion: bool = False, lang: str = "en"):
+    def __init__(self, data: bytes, lang: str = "en"):
         # Ghost data in Mario Kart 8 for the most part is formatted as Big-Endian
         # The embedded Mii data seems to be formatted as Little-Endian, however
-        if data[0x0:0x4].decode('utf8') == "CTG0":
+        if data[0x0:0x4] == b'CTG0':
             self.data = data[0x48:]
             self.header = data[:0x48]
         else:
@@ -101,7 +110,6 @@ class MK8GhostInfo:
                 "Ghost not in the proper format: likely not a Mario Kart 8 ghost"
             )
 
-        self.motion = motion  # Still being investigated if this exists internally
         version = self.data[0x06:0x08]
         self.version = self._versions.get(version, "???")
 
@@ -157,6 +165,12 @@ class MK8GhostInfo:
         # Force big endian; strip everything after the null character if one occurs
         self.player_name = self.player_name_bytes.decode("utf_16_be").split("\0", 1)[0]
 
+        # Various Race Flags
+        self.motion = (self.data[0x379] >> 5) & 0b00000011
+
+        # Filename Version
+        self.filename_version = self.data[0x380]
+
         # Total Time and Splits
         self.total_time = MK8TimeTuple(
             self.data[0x36D], self.data[0x36E], int.from_bytes(self.data[0x370:0x372], "big")
@@ -170,13 +184,20 @@ class MK8GhostInfo:
                           for x in lap_offsets]
 
     def __str__(self):
+        if self.motion == 0:
+            motion_kind = 'False'
+        elif self.motion == 1:
+            motion_kind = 'True (Regular)'
+        else:
+            motion_kind = 'True (Gold)'
+
         return (
             f"Track: {self.track.fullname}\n"
             f"Engine Class: {self.engine_class}\n"
             f"Version: {self.version}\n\n"
             f"Total Time: {self.total_time}\n"
             f"Lap Times: {' | '.join(str(time) for time in self.lap_times)}\n"
-            f"Motion Controls: {self.motion}\n"
+            f"Motion Controls: {motion_kind}\n"
             f"\n"
             f"Name: {self.player_name}\n"
             f"Location: {self.subregion}, {self.country}\n"

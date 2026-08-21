@@ -93,7 +93,7 @@ async def main():
 
     ghost_result = await get_ghost(client, NNID)
     true_nnid = await client.nnas.get_nnid(ghost_result.pid)
-    ghost_info = MK8GhostInfo(ghost_result.ghost_data, motion=ghost_result.motion)
+    ghost_info = MK8GhostInfo(ghost_result.ghost_data)
     player_info = MK8PlayerInfo(ghost_result.common_data)
 
     print("Ghost Data Information")

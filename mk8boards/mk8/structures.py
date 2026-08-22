@@ -134,7 +134,6 @@ class MK8GhostInfo:
         self.track = common.MK8Tracks(self.data[0x17F])
         self.online = bool(self.data[0x183])
         self.gamemode = self.data[0x187]
-        self.num_racers = self.data[0x18B]
 
         cc_id = self.data[0x193]
         if cc_id < len(self._engine_classes):
@@ -144,6 +143,7 @@ class MK8GhostInfo:
 
         self.mirror = bool(self.data[0x194])
         self.teams = bool(self.data[0x195])
+        self.num_racers = self.data[0x1AB]
 
         # Mii Data
         self.mii = MiiDataWiiU.parse(self.data[0x244:0x2A4])

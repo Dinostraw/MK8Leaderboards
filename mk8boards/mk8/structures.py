@@ -143,7 +143,7 @@ class MK8GhostInfo:
             self.engine_class = "???"
 
         self.mirror = bool(self.data[0x194])
-        self.team = self.data[0x195]
+        self.teams = bool(self.data[0x195])
 
         # Mii Data
         self.mii = MiiDataWiiU.parse(self.data[0x244:0x2A4])

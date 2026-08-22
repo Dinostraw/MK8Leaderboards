@@ -113,7 +113,7 @@ class Structure8UTest(unittest.TestCase):
         self.assertEqual(2, self.ghost_stub.num_racers)
         self.assertEqual('150cc', self.ghost_stub.engine_class)
         self.assertEqual(False, self.ghost_stub.mirror)
-        self.assertEqual(0, self.ghost_stub.team)
+        self.assertEqual(False, self.ghost_stub.teams)
 
         # Mii Data
         self.assertEqual('vƒ◆Jimmy-え', self.ghost_stub.mii.mii_name)

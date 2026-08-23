@@ -56,8 +56,8 @@ class MK8DXGhostInfo:
 
     def generate_header(self) -> bytes:
         ver = b'\x00\x00\x00\x00'
-        size = int.to_bytes(len(self.data) + 0x48, 4, "little")
-        crc = crc32(self.data).to_bytes(4, "little")
+        size = int.to_bytes(len(self.data) + 0x48, 4, 'little')
+        crc = crc32(self.data).to_bytes(4, 'little')
 
         return b'0GTC' + ver + size + (b'\0' * 0x2C) + crc + (b'\0' * 0x0C)
 
@@ -76,34 +76,38 @@ class MK8DXGhostInfo:
             )
 
         # Timestamp
-        self.year = int.from_bytes(self.data[0x0C:0x10], "little")
-        self.month = self.data[0x10]
-        self.day = self.data[0x14]
-        self.weekday = common.Weekdays(self.data[0x18])
-        self.hour = self.data[0x1C]
-        self.min = self.data[0x20]
-        self.sec = self.data[0x24]
+        self.year = int.from_bytes(self.data[0x0C:0x10], 'little')
+        self.month = int.from_bytes(self.data[0x10:0x14], 'little')
+        self.day = int.from_bytes(self.data[0x14:0x18], 'little')
+        self.weekday = common.Weekdays(int.from_bytes(self.data[0x18:0x1C], 'little'))
+        self.hour = int.from_bytes(self.data[0x1C:0x20], 'little')
+        self.min = int.from_bytes(self.data[0x20:0x24], 'little')
+        self.sec = int.from_bytes(self.data[0x24:0x28], 'little')
 
         # Race Settings
-        cc_id = self.data[0x3C]
+        # Technically signed, but treating as unsigned to simplify processing
+        cc_id = int.from_bytes(self.data[0x3C:0x40], 'little')
         if cc_id < len(self._engine_classes):
             self.engine_class = self._engine_classes[cc_id]
         else:
             self.engine_class = "???"
 
         # Combo Info
-        self.character = common.Characters(self.data[0x68])
+        self.character = common.Characters(int.from_bytes(self.data[0x68:0x6C], 'little', signed=True))
         self.variant = self.data[0x6C]
         self.mii_weight = self.data[0x6D]
-        self.vehicle_body = common.MK8DXVehicleBodies(self.data[0x5C])
-        self.tire = common.Tires(self.data[0x60])
-        self.glider = common.Gliders(self.data[0x64])
+        self.vehicle_body = common.MK8DXVehicleBodies(int.from_bytes(
+            self.data[0x5C:0x60], 'little', signed=True
+        ))
+        self.tire = common.Tires(int.from_bytes(self.data[0x60:0x64], 'little', signed=True))
+        self.glider = common.Gliders(int.from_bytes(self.data[0x64:0x68], 'little', signed=True))
 
         # Basic Info
-        if self.data[0x1CC] <= common.MK8Tracks.BIG_BLUE:
-            self.track = common.MK8Tracks(self.data[0x1CC])
+        track = int.from_bytes(self.data[0x1CC:0x1D0], 'little', signed=True)
+        if track <= common.MK8Tracks.BIG_BLUE:
+            self.track = common.MK8Tracks(track)
         else:
-            self.track = common.BoosterTracks(self.data[0x1CC])
+            self.track = common.BoosterTracks(track)
 
         # Mii data
         self.mii = MiiDataSwitch.parse(self.data[0x244:0x29C])
@@ -118,14 +122,14 @@ class MK8DXGhostInfo:
 
         # Total Time and Splits
         self.total_time = MK8TimeTuple(
-            self.data[0x384], self.data[0x385], int.from_bytes(self.data[0x386:0x388], "little")
+            self.data[0x384], self.data[0x385], int.from_bytes(self.data[0x386:0x388], 'little')
         )
 
         lap_offsets = [0x334, 0x33C, 0x344, 0x34C, 0x354, 0x35C, 0x364]
         if self.track != common.MK8Tracks.GCN_BABY_PARK:
             lap_offsets = lap_offsets[:3]
 
-        self.lap_times = [MK8TimeTuple(self.data[x], self.data[x+1], int.from_bytes(self.data[x+2:x+4], "little"))
+        self.lap_times = [MK8TimeTuple(self.data[x], self.data[x+1], int.from_bytes(self.data[x+2:x+4], 'little'))
                           for x in lap_offsets]
 
         # Various Race Flags

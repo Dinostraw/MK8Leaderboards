@@ -90,8 +90,8 @@ class MK8GhostInfo:
         else:
             ver = b'\x00\x10\x00\x10'
 
-        size = int.to_bytes(len(self.data) + 0x48, 4, "big")
-        crc = crc32(self.data).to_bytes(4, "big")
+        size = int.to_bytes(len(self.data) + 0x48, 4, 'big')
+        crc = crc32(self.data).to_bytes(4, 'big')
 
         return b'CTG0' + ver + size + (b'\0' * 0x2C) + crc + (b'\0' * 0x0C)
 
@@ -114,28 +114,29 @@ class MK8GhostInfo:
         self.version = self._versions.get(version, "???")
 
         # Timestamp
-        self.year = int.from_bytes(self.data[0x0E:0x10], "big")
-        self.month = self.data[0x13]
-        self.day = self.data[0x17]
-        self.weekday = common.Weekdays(self.data[0x1B])
-        self.hour = self.data[0x1F]
-        self.min = self.data[0x23]
-        self.sec = self.data[0x27]
+        self.year = int.from_bytes(self.data[0x0C:0x10], 'big')
+        self.month = int.from_bytes(self.data[0x10:0x14], 'big')
+        self.day = int.from_bytes(self.data[0x14:0x18], 'big')
+        self.weekday = common.Weekdays(int.from_bytes(self.data[0x18:0x1C], 'big'))
+        self.hour = int.from_bytes(self.data[0x1C:0x20], 'big')
+        self.min = int.from_bytes(self.data[0x20:0x24], 'big')
+        self.sec = int.from_bytes(self.data[0x24:0x28], 'big')
 
         # Combo Info
-        self.character = common.Characters(self.data[0x3B])
+        self.character = common.Characters(int.from_bytes(self.data[0x38:0x3C], 'big', signed=True))
         self.variant = self.data[0x3C]
         self.mii_weight = self.data[0x3D]
-        self.vehicle_body = common.MK8VehicleBodies(self.data[0x2F])
-        self.tire = common.Tires(self.data[0x33])
-        self.glider = common.Gliders(self.data[0x37])
+        self.vehicle_body = common.MK8VehicleBodies(int.from_bytes(self.data[0x2C:0x30], 'big', signed=True))
+        self.tire = common.Tires(int.from_bytes(self.data[0x30:0x34], 'big', signed=True))
+        self.glider = common.Gliders(int.from_bytes(self.data[0x34:0x38], 'big', signed=True))
 
         # Race Settings
-        self.track = common.MK8Tracks(self.data[0x17F])
-        self.online = bool(self.data[0x183])
-        self.gamemode = self.data[0x187]
+        self.track = common.MK8Tracks(int.from_bytes(self.data[0x17C:0x180], 'big', signed=True))
+        self.online = bool(int.from_bytes(self.data[0x180:0x184], 'big', signed=True))
+        self.gamemode = int.from_bytes(self.data[0x184:0x188], 'big', signed=True)
 
-        cc_id = self.data[0x193]
+        # Technically signed, but treating as unsigned to simplify processing
+        cc_id = int.from_bytes(self.data[0x190:0x194], 'big')
         if cc_id < len(self._engine_classes):
             self.engine_class = self._engine_classes[cc_id]
         else:
@@ -143,7 +144,7 @@ class MK8GhostInfo:
 
         self.mirror = bool(self.data[0x194])
         self.teams = bool(self.data[0x195])
-        self.num_racers = self.data[0x1AB]
+        self.num_racers = int.from_bytes(self.data[0x1A8:0x1AC], 'big', signed=True)
 
         # Mii Data
         self.mii = MiiDataWiiU.parse(self.data[0x244:0x2A4])
@@ -173,14 +174,18 @@ class MK8GhostInfo:
 
         # Total Time and Splits
         self.total_time = MK8TimeTuple(
-            self.data[0x36D], self.data[0x36E], int.from_bytes(self.data[0x370:0x372], "big")
+            int.from_bytes(self.data[0x36C:0x36E], 'big'),
+            self.data[0x36E],
+            int.from_bytes(self.data[0x370:0x372], 'big')
         )
 
-        lap_offsets = [0x331, 0x33D, 0x349, 0x355, 0x361, 0x385, 0x391]
+        lap_offsets = [0x330, 0x33C, 0x348, 0x354, 0x360, 0x384, 0x390]
         if self.track != common.MK8Tracks.GCN_BABY_PARK:
             lap_offsets = lap_offsets[:3]
 
-        self.lap_times = [MK8TimeTuple(self.data[x], self.data[x + 1], int.from_bytes(self.data[x + 3:x + 5], "big"))
+        self.lap_times = [MK8TimeTuple(int.from_bytes(self.data[x:x + 2], 'big'),
+                                       self.data[x + 2],
+                                       int.from_bytes(self.data[x + 4:x + 6], 'big'))
                           for x in lap_offsets]
 
     def __str__(self):

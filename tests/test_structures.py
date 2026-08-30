@@ -4,7 +4,7 @@ import unittest
 
 from mk8boards import common
 from mk8boards.mk8.structures import MK8GhostInfo, MK8PlayerInfo
-from mk8boards.mk8dx.structures import MK8DXGhostInfo
+from mk8boards.mk8dx.structures import MK8DXGhostInfo, MK8DXPlayerInfo
 
 TEST_FILE = pathlib.Path(__file__).parent.joinpath()
 
@@ -225,6 +225,14 @@ class Structure8DXTest(unittest.TestCase):
             0x00, 0x00, 0x00, 0x00, 0x01, 0x03, 0x4D, 0x01, 0x00, 0x00, 0x00, 0x00, 0x31, 0x34, 0x05, 0x00,
             0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         ]) + (b'\0' * 0x860))
+
+    def test_player_data(self) -> None:
+        info = MK8DXPlayerInfo(self.ghost_stub.data[0x230:0x300])
+        self.assertEqual('Jimmy', info.mii.mii_name)
+        self.assertEqual('US', info.country_id)
+
+        uuid = b'\x2A\xD8\x8C\xE7\x47\x20\x00\x10\x8C\xD9\x1B\x67\x62\x98\xCE\x8A'
+        self.assertEqual(info.profile_id.bytes_le, uuid)
 
     def test_ghost(self) -> None:
         self.assertEqual(0xC00, len(self.ghost_stub.data))

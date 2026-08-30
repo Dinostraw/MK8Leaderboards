@@ -1,9 +1,20 @@
 from binascii import crc32
 from typing import Literal
+from uuid import UUID
 
 from mk8boards import common
 from mk8boards.miis import MiiDataSwitch
 from mk8boards.common import InvalidGhostFormat, MK8TimeTuple
+
+
+class MK8DXPlayerInfo:
+    def __init__(self, common_data: bytes, lang: str = 'en'):
+        self.mii = MiiDataSwitch.parse(common_data[0x14:0x6C])
+        self.country_id = common_data[0x70:0x72].decode()[::-1]
+        self.profile_id = UUID(bytes_le=common_data[0xC0:0xD0])
+
+    def __str__(self):
+        return ''.join(f"{k}: {v}\n" for k, v in self.__dict__.items())
 
 
 class MK8DXGhostInfo:
